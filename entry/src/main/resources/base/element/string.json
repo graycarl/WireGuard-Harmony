@@ -11,6 +11,10 @@
     {
       "name": "EntryAbility_label",
       "value": "WireGuard"
+    },
+    {
+      "name": "camera_reason",
+      "value": "用于扫描 WireGuard 配置二维码"
     }
   ]
 }
