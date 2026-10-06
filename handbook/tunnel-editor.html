@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>隧道编辑器 · WireGuard 用户手册</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="page-head">
+  <div class="crumb"><a href="index.html">手册首页</a> / 隧道编辑器</div>
+  <h1>隧道编辑器</h1>
+  <p class="lede">手动填写、修改和重命名隧道配置的地方。界面按配置结构分成一张「本地」卡片
+    和若干张「远程」卡片，输入时就地拦截非法内容，保存前再做一次完整校验并给出具体原因。</p>
+</header>
+
+<h2><span class="no">1</span>怎么进入编辑器</h2>
+<p>编辑器有两个入口，分别对应「新建」和「修改」两种用途：</p>
+<ol class="steps">
+  <li><b>手动创建（空白编辑器）</b>：在<a href="tunnel-list.html">隧道列表</a>页点右下角的
+    「<b>+</b>」→ 选择「<b>手动创建</b>」，进入一张空白编辑器，标题为「创建 WireGuard 隧道」，
+    所有字段都从空开始。</li>
+  <li><b>编辑已有隧道</b>：在<a href="tunnel-detail.html">隧道详情</a>页点右上角的
+    「<b>编辑</b>」按钮，进入编辑器时会自动载入该隧道当前的配置，你只需要改动要改的字段。</li>
+</ol>
+<div class="note">两种入口用的是同一个编辑器：保存成功后会退出编辑器、回到该隧道的详情页。
+    新建与编辑之外的改名也在同一个地方完成——直接改「名称」字段即可（见<a href="#save">第 8 节 保存</a>）。</div>
+
+<h2><span class="no">2</span>界面一览</h2>
+<p>页面从上到下是：标题栏（左侧返回箭头与标题、右侧<b>保存</b>按钮）、「本地」卡片、
+    一张或多张「远程」卡片，以及最底部的「添加节点」按钮。</p>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="隧道编辑器整体界面示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <!-- 状态栏 -->
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <!-- 标题栏 -->
+  <g transform="translate(30 64)" stroke="#182431" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="5,-7 -3,0 5,7"/>
+  </g>
+  <text x="46" y="69" font-size="14" font-weight="700" fill="#182431">创建 WireGuard 隧道</text>
+  <text x="284" y="69" font-size="12.5" fill="#0A59F7" text-anchor="end">保存</text>
+  <circle cx="252" cy="44" r="9" fill="#0A59F7"/><text x="252" y="48" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+
+  <!-- 本地卡片 -->
+  <rect x="16" y="82" width="268" height="248" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="105" font-size="12" font-weight="700" fill="#182431">本地</text>
+  <!-- 名称 -->
+  <text x="32" y="128" font-size="10.5" fill="#5A6572">名称</text>
+  <rect x="118" y="115" width="150" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="125" y="128" font-size="10" fill="#182431">phone</text>
+  <!-- 私钥 -->
+  <text x="32" y="155" font-size="10.5" fill="#5A6572">私钥</text>
+  <rect x="118" y="142" width="96" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <rect x="220" y="141" width="48" height="20" rx="10" fill="#E3EDFE"/>
+  <text x="244" y="155" font-size="10" fill="#0A59F7" text-anchor="middle">生成</text>
+  <!-- 公钥 -->
+  <text x="32" y="182" font-size="10.5" fill="#5A6572">公钥</text>
+  <rect x="118" y="169" width="150" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="125" y="182" font-size="10" fill="#97A0AB">（生成）</text>
+  <!-- 局域网 IP 地址 -->
+  <text x="32" y="209" font-size="10.5" fill="#5A6572">局域网 IP 地址</text>
+  <rect x="118" y="196" width="150" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="125" y="209" font-size="8.5" fill="#182431">10.0.0.2/32, fc00::2/128</text>
+  <!-- 监听端口 -->
+  <text x="32" y="236" font-size="10.5" fill="#5A6572">监听端口</text>
+  <rect x="118" y="223" width="150" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="125" y="236" font-size="10" fill="#97A0AB">（随机）</text>
+  <!-- DNS 服务器 -->
+  <text x="32" y="263" font-size="10.5" fill="#5A6572">DNS 服务器</text>
+  <rect x="118" y="250" width="150" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="125" y="263" font-size="10" fill="#182431">1.1.1.1</text>
+  <!-- MTU -->
+  <text x="32" y="290" font-size="10.5" fill="#5A6572">MTU</text>
+  <rect x="118" y="277" width="150" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="125" y="290" font-size="10" fill="#97A0AB">（自动）</text>
+  <!-- 应用过滤 -->
+  <text x="32" y="317" font-size="10" fill="#5A6572">应用过滤</text>
+  <rect x="118" y="304" width="150" height="20" rx="10" fill="#E3EDFE"/>
+  <text x="193" y="318" font-size="10" fill="#0A59F7" text-anchor="middle">应用过滤</text>
+
+  <!-- 远程卡片 -->
+  <rect x="16" y="342" width="268" height="196" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="365" font-size="12" font-weight="700" fill="#182431">远程</text>
+  <g transform="translate(266 360)" stroke="#E84026" stroke-width="1.8" fill="none">
+    <rect x="-8" y="-4" width="16" height="12" rx="2"/>
+    <line x1="-10" y1="-7" x2="10" y2="-7" stroke-linecap="round"/>
+    <line x1="-3" y1="-9.5" x2="3" y2="-9.5" stroke-linecap="round"/>
+  </g>
+  <!-- 公钥 -->
+  <text x="32" y="388" font-size="10.5" fill="#5A6572">公钥</text>
+  <rect x="118" y="375" width="150" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="125" y="388" font-size="9" fill="#182431">8Jm2Qk= … Qk=</text>
+  <!-- 预共享密钥 -->
+  <text x="32" y="415" font-size="10.5" fill="#5A6572">预共享密钥</text>
+  <rect x="118" y="402" width="150" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="125" y="415" font-size="10" fill="#97A0AB">（可选）</text>
+  <!-- 连接保活间隔 -->
+  <text x="32" y="442" font-size="10.5" fill="#5A6572">连接保活间隔</text>
+  <rect x="118" y="429" width="110" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="125" y="442" font-size="10" fill="#182431">25</text>
+  <text x="236" y="442" font-size="10" fill="#5A6572">秒</text>
+  <!-- 对端 -->
+  <text x="32" y="469" font-size="10.5" fill="#5A6572">对端</text>
+  <rect x="130" y="456" width="138" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="137" y="469" font-size="9" fill="#182431">vpn.example.com:51820</text>
+  <!-- 路由的 IP 地址（段） -->
+  <text x="32" y="496" font-size="9" fill="#5A6572">路由的 IP 地址（段）</text>
+  <rect x="130" y="483" width="138" height="18" rx="5" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="137" y="496" font-size="8.5" fill="#182431">0.0.0.0/0, ::/0</text>
+  <!-- 排除局域网 -->
+  <rect x="120" y="512" width="14" height="14" rx="3" fill="#FFFFFF" stroke="#B9C0CA" stroke-width="1.6"/>
+  <text x="142" y="524" font-size="10.5" fill="#5A6572">排除局域网</text>
+
+  <!-- 添加节点 -->
+  <rect x="16" y="548" width="268" height="38" rx="12" fill="#FFFFFF" stroke="#0A59F7" stroke-width="1.4"/>
+  <g stroke="#0A59F7" stroke-width="2" stroke-linecap="round">
+    <line x1="124" y1="560" x2="124" y2="574"/><line x1="117" y1="567" x2="131" y2="567"/>
+  </g>
+  <text x="142" y="572" font-size="13" fill="#0A59F7">添加节点</text>
+
+  <!-- 标注 -->
+  <circle cx="14" cy="100" r="9" fill="#0A59F7"/><text x="14" y="104" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <circle cx="278" cy="151" r="9" fill="#0A59F7"/><text x="278" y="155" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+  <circle cx="278" cy="314" r="9" fill="#0A59F7"/><text x="278" y="318" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+  <circle cx="14" cy="360" r="9" fill="#0A59F7"/><text x="14" y="364" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">5</text>
+  <circle cx="14" cy="567" r="9" fill="#0A59F7"/><text x="14" y="571" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">6</text>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>保存按钮</b>：右上角，点它才会保存；保存前会整体校验一次。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>「本地」卡片</b>：本机信息——名称、私钥、公钥、地址、端口、DNS、MTU、应用过滤。</span></div>
+    <div class="li"><span class="dot">3</span><span><b>私钥与「生成」</b>：内容默认遮挡，点「生成」立即换成一把新的随机私钥（不再二次确认）。</span></div>
+    <div class="li"><span class="dot">4</span><span><b>应用过滤按钮</b>：打开应用选择对话框；按钮文案会随已做的选择变化。</span></div>
+    <div class="li"><span class="dot">5</span><span><b>「远程」卡片</b>：对端（你要连接的服务器/另一台设备）信息，可以有多张；右上角「删除」图标删除该卡片（不再二次确认）。</span></div>
+    <div class="li"><span class="dot">6</span><span><b>「添加节点」按钮</b>：在最末尾追加一张空白的「远程」卡片。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<div class="note">上图是「手动创建」时的编辑器结构（字段内容为举例）：示例中已经填了名称，还没生成私钥，
+    所以「公钥」位置显示占位文字「（生成）」；「监听端口」和「MTU」显示的是留空时的占位「（随机）」「（自动）」。
+    从详情页进入编辑时，各字段会显示该隧道已保存的内容。</div>
+
+<h2><span class="no">3</span>「本地」卡片：逐字段说明</h2>
+<table>
+  <tr><th>字段</th><th>含义</th><th>怎么填</th></tr>
+  <tr>
+    <td>名称</td>
+    <td>隧道名称，列表和详情页显示的就是它。</td>
+    <td>仅允许 ASCII 字母、数字及 <code>_ = + . -</code>，最长 15 个字符；
+      非法字符不会进入输入框，超出长度的内容被截断。重名判断按<b>完全一致（区分大小写）</b>。</td>
+  </tr>
+  <tr>
+    <td>私钥</td>
+    <td>本机私钥（base64，44 字符），相当于这把隧道的「钥匙」。</td>
+    <td>默认以密码样式遮挡；仅接受 <code>A-Za-z0-9+/</code>，总长上限 44
+      （第 44 位允许 <code>=</code>）；非法字符不进入，超长内容（含粘贴）截断到 44。
+      右侧「生成」按钮可随机生成一把新私钥。查看内容需要先通过锁屏认证，
+      详见<a href="#privatekey">第 4 节</a>。</td>
+  </tr>
+  <tr>
+    <td>公钥</td>
+    <td>由私钥自动派生，只读，不需要也不能手工填写。</td>
+    <td>私钥合法时实时显示派生出的公钥；私钥为空或非法时无内容，显示占位文字
+      「（生成）」。点击该字段可把公钥复制到剪贴板（提示「公钥 已复制到剪贴板」）。</td>
+  </tr>
+  <tr>
+    <td>局域网 IP 地址</td>
+    <td>隧道里本机的地址，可以有多个，逗号分隔。</td>
+    <td>自由文本，例如 <code>10.0.0.2/32, fc00::2/128</code>。</td>
+  </tr>
+  <tr>
+    <td>监听端口</td>
+    <td>本端接收对端数据的端口。</td>
+    <td>只能填纯数字；占位提示「（随机）」，<b>留空表示随机</b>。</td>
+  </tr>
+  <tr>
+    <td>DNS 服务器</td>
+    <td>连接后使用的 DNS，可多个，逗号分隔。</td>
+    <td>自由文本；不是 IP 形式的条目会被当作 DNS 搜索域名处理。</td>
+  </tr>
+  <tr>
+    <td>MTU</td>
+    <td>最大传输单元（一次传输的数据包大小上限）。</td>
+    <td>只能填纯数字；占位提示「（自动）」，<b>留空表示自动</b>。一般不需要改动。</td>
+  </tr>
+  <tr>
+    <td>应用过滤</td>
+    <td>按应用选择哪些应用走 VPN、哪些不走。</td>
+    <td>点击按钮打开对话框选择；按钮文案会随选择变化，详见<a href="#appfilter">第 7 节</a>。</td>
+  </tr>
+</table>
+<div class="tip">拿不准的字段（监听端口、MTU、应用过滤）直接留空／不设置即可，
+    应用会按「随机」和「自动」处理。</div>
+
+<h2 id="privatekey"><span class="no">4</span>私钥：查看保护与重新生成</h2>
+<p>「私钥」和「远程」卡片里的「预共享密钥」都算敏感内容，默认一律遮挡显示。</p>
+
+<h3>第一次看私钥内容要认证</h3>
+<ol class="steps">
+  <li>点一下（或聚焦）已经有内容的密钥字段——本次进入编辑器后的<b>第一次</b>会先弹出
+    系统的锁屏认证，标题为「查看私钥前需要通过认证」。</li>
+  <li>用<b>生物识别</b>或<b>锁屏凭证（PIN/图案/密码）</b>验证，两者都可以。</li>
+  <li>认证通过后字段变为明文显示，<b>本次编辑会话内</b>再点密钥字段不会重复询问；
+    同时编辑器进入防截屏/防录屏状态，直到你离开编辑器。</li>
+</ol>
+<table>
+  <tr><th>认证结果</th><th>表现</th></tr>
+  <tr><td>通过</td><td>字段明文显示，本次编辑会话内不再重复认证。</td></tr>
+  <tr><td>单次识别失败</td><td>保持遮挡，提示「认证失败」。</td></tr>
+  <tr><td>系统错误</td><td>保持遮挡，提示「认证失败：<i>&lt;原因&gt;</i>」。</td></tr>
+  <tr><td>你点了取消</td><td>保持遮挡，不提示。</td></tr>
+  <tr><td>连续失败被系统锁定</td><td>页面保持遮挡并显示系统返回的锁定提示；锁定解除后可以重试。</td></tr>
+  <tr><td>设备没有任何认证能力</td><td>既没有可用生物特征、也没设置锁屏凭证时，直接明文显示，不阻断使用。</td></tr>
+</table>
+<div class="note">两个例外：<b>①</b> 密钥字段为空时（新建隧道）点它不会触发认证；
+    <b>②</b> 页面旋转或重建后视为新的编辑会话，已明文显示的密钥会恢复为遮挡，需要重新认证。
+    完整的安全说明见<a href="privacy-security.html">隐私与安全</a>。</div>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="查看私钥前的锁屏认证示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <g transform="translate(30 64)" stroke="#182431" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="5,-7 -3,0 5,7"/>
+  </g>
+  <text x="46" y="69" font-size="14" font-weight="700" fill="#182431">创建 WireGuard 隧道</text>
+  <text x="284" y="69" font-size="12.5" fill="#0A59F7" text-anchor="end">保存</text>
+  <!-- 背景：本地卡片（私钥已有点击动作） -->
+  <rect x="16" y="82" width="268" height="140" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="105" font-size="12" font-weight="700" fill="#182431">本地</text>
+  <text x="32" y="155" font-size="10.5" fill="#5A6572">私钥</text>
+  <rect x="118" y="142" width="96" height="18" rx="5" fill="#E3EDFE" stroke="#0A59F7"/>
+  <text x="125" y="155" font-size="10" fill="#5A6572">••••••••••</text>
+  <rect x="220" y="141" width="48" height="20" rx="10" fill="#E3EDFE"/>
+  <text x="244" y="155" font-size="10" fill="#0A59F7" text-anchor="middle">生成</text>
+  <!-- 遮罩 -->
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#182431" opacity="0.4"/>
+  <!-- 系统认证卡片 -->
+  <rect x="30" y="196" width="240" height="204" rx="16" fill="#FFFFFF"/>
+  <g transform="translate(150 258)" stroke="#0A59F7" stroke-width="2" fill="none" stroke-linecap="round">
+    <path d="M -21 -5 A 26 26 0 0 1 21 -5"/>
+    <path d="M -16 2 A 18 18 0 0 1 16 2"/>
+    <path d="M -10 8 A 12 12 0 0 1 10 8"/>
+    <line x1="0" y1="14" x2="0" y2="6"/>
+  </g>
+  <text x="150" y="306" font-size="12.5" font-weight="600" fill="#182431" text-anchor="middle">查看私钥前需要通过认证</text>
+  <text x="150" y="330" font-size="10.5" fill="#97A0AB" text-anchor="middle">生物识别或锁屏凭证均可</text>
+  <rect x="105" y="350" width="90" height="32" rx="16" fill="#F4F6F8"/>
+  <text x="150" y="371" font-size="12" fill="#0A59F7" text-anchor="middle">取消</text>
+  <text x="150" y="452" font-size="10.5" fill="#FFFFFF" text-anchor="middle">认证弹窗由系统绘制（示意图）</text>
+</svg>
+<figcaption>首次点击已有内容的私钥字段：先通过系统锁屏认证，通过后本次编辑会话内不再重复询问。</figcaption>
+</figure>
+
+<h3>「生成」按钮</h3>
+<ul>
+  <li>点击「生成」会<b>立即</b>用一把新的随机私钥替换输入框内容，<b>不再二次确认</b>。</li>
+  <li>生成后字段仍然保持遮挡，内容同样受上面的查看保护。</li>
+  <li>替换只有在<b>保存之后</b>才真正生效；没保存就返回，原私钥不变。</li>
+</ul>
+<div class="warn">对<b>已有隧道</b>重新生成私钥并保存后，旧公钥立即失效——必须同时在对端（服务器或对等设备）
+    上更新成新的公钥，否则隧道将无法连通。</div>
+
+<h2><span class="no">5</span>「远程」卡片：逐字段说明</h2>
+<p>「远程」卡片可以有多张，每张描述一个对端；最底部的「添加节点」按钮会在末尾追加一张空白卡片。</p>
+<table>
+  <tr><th>字段</th><th>含义</th><th>怎么填</th></tr>
+  <tr>
+    <td>公钥</td>
+    <td>对端的公钥（base64，44 字符）。</td>
+    <td>与私钥相同的字符限制：仅接受 <code>A-Za-z0-9+/</code>，总长上限 44，第 44 位允许 <code>=</code>；
+      非法字符不进入，超长内容（含粘贴）截断到 44。这一项与私钥不同，<b>默认就是明文</b>。</td>
+  </tr>
+  <tr>
+    <td>预共享密钥</td>
+    <td>可选的对端预共享密钥（base64，44 字符），用于额外加固。</td>
+    <td>密码样式遮挡，占位提示「（可选）」；查看保护与私钥相同。</td>
+  </tr>
+  <tr>
+    <td>连接保活间隔</td>
+    <td>多久向对端发一次保活包，用来维持连接。</td>
+    <td>只能填纯数字，输入框右侧后缀显示「秒」；占位提示「（可选，不建议设置）」，
+      一般留空（不设置）即可。</td>
+  </tr>
+  <tr>
+    <td>对端</td>
+    <td>对端的服务器地址和端口。</td>
+    <td>自由文本，例如 <code>vpn.example.com:51820</code>、<code>[2001:db8::1]:51820</code>。</td>
+  </tr>
+  <tr>
+    <td>路由的 IP 地址（段）</td>
+    <td>哪些流量走这条隧道（对端路由段），逗号分隔。</td>
+    <td>自由文本，例如 <code>0.0.0.0/0, ::/0</code>（表示全部流量都走隧道）。</td>
+  </tr>
+  <tr>
+    <td>排除局域网</td>
+    <td>把所有流量走隧道、但保留访问本地局域网的能力。</td>
+    <td>复选框，<b>只在满足条件时出现</b>，详见<a href="#lan">第 6 节</a>。</td>
+  </tr>
+</table>
+<div class="note">卡片右上角的<b>删除</b>图标按钮会直接移除这张「远程」卡片，<b>不再二次确认</b>。
+    允许把「远程」卡片删到<b>零个</b>并保存：这样保存出来的隧道在详情页的远程区没有内容，
+    连接时也不会被额外拦截（连接行为见<a href="tunnel-connection.html">连接与断开</a>）。</div>
+
+<h2 id="lan"><span class="no">6</span>「排除局域网」复选框</h2>
+<p>这个复选框只在<b>同时满足</b>下面两个条件时出现：</p>
+<ul>
+  <li>当前<b>只有一个</b>「远程」卡片；并且</li>
+  <li>它的「路由的 IP 地址（段）」恰好包含 <code>0.0.0.0/0</code>
+    （或者已经是等价的完整公网段列表）。</li>
+</ul>
+<p>勾选与取消的效果：</p>
+<table>
+  <tr><th>操作</th><th>发生了什么</th></tr>
+  <tr>
+    <td>勾选</td>
+    <td><code>0.0.0.0/0</code> 被替换成等价的<b>公网 IPv4 段列表</b>（共 30 条固定网段，从
+      <code>0.0.0.0/5</code>、<code>8.0.0.0/7</code>、<code>11.0.0.0/8</code> 一直到
+      <code>208.0.0.0/4</code>）——效果上就是排除掉 10/8、172.16/12、192.168/16 等私有段与保留段；
+      同时把「DNS 服务器」里的 IPv4 条目以 <code>/32</code> 主机路由的形式补进路由段，
+      保证 DNS 请求仍然走隧道。</td>
+  </tr>
+  <tr>
+    <td>取消勾选</td>
+    <td>路由段恢复为 <code>0.0.0.0/0</code>，并移除刚才自动补入的 DNS <code>/32</code> 路由。</td>
+  </tr>
+</table>
+<ul>
+  <li>勾选后复选框会继续显示；如果你手工把路由段改得不再与公网段列表等价，复选框会自动隐藏。</li>
+  <li>勾选之后再去修改「DNS 服务器」，自动补入的 DNS 路由会跟着一起同步更新。</li>
+  <li>只有是 IPv4 字面量的 DNS 条目才会被补入路由；DNS 搜索域名不会被补入。</li>
+</ul>
+
+<figure class="shot shot-wide">
+<svg viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="排除局域网勾选前后的对比示意图">
+  <!-- 勾选前 -->
+  <rect x="10" y="10" width="260" height="220" rx="14" fill="#FFFFFF" stroke="#E4E7EB"/>
+  <text x="26" y="40" font-size="12.5" font-weight="700" fill="#182431">勾选前</text>
+  <text x="26" y="76" font-size="10.5" fill="#5A6572">路由的 IP 地址（段）</text>
+  <rect x="26" y="86" width="228" height="42" rx="8" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="38" y="108" font-size="11" fill="#182431">0.0.0.0/0</text>
+  <text x="26" y="152" font-size="10.5" fill="#5A6572">DNS 服务器</text>
+  <rect x="26" y="162" width="228" height="28" rx="8" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="38" y="180" font-size="11" fill="#182431">1.1.1.1</text>
+  <rect x="28" y="200" width="14" height="14" rx="3" fill="#FFFFFF" stroke="#B9C0CA" stroke-width="1.6"/>
+  <text x="50" y="212" font-size="10.5" fill="#5A6572">排除局域网（未勾选）</text>
+  <!-- 勾选后 -->
+  <rect x="290" y="10" width="260" height="220" rx="14" fill="#FFFFFF" stroke="#E4E7EB"/>
+  <text x="306" y="40" font-size="12.5" font-weight="700" fill="#182431">勾选后</text>
+  <text x="306" y="76" font-size="10.5" fill="#5A6572">路由的 IP 地址（段）</text>
+  <rect x="306" y="86" width="228" height="42" rx="8" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="318" y="104" font-size="9" fill="#182431">0.0.0.0/5, 8.0.0.0/7, … , 208.0.0.0/4</text>
+  <text x="318" y="120" font-size="9" fill="#0A59F7">1.1.1.1/32</text>
+  <text x="306" y="152" font-size="10.5" fill="#5A6572">DNS 服务器</text>
+  <rect x="306" y="162" width="228" height="28" rx="8" fill="#F4F6F8" stroke="#E4E7EB"/>
+  <text x="318" y="180" font-size="11" fill="#182431">1.1.1.1</text>
+  <rect x="308" y="200" width="14" height="14" rx="3" fill="#0A59F7"/>
+  <path d="M 311 207 L 314 210 L 319 203" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="330" y="212" font-size="10.5" fill="#5A6572">排除局域网（已勾选）</text>
+</svg>
+<figcaption><b>左侧</b>：全部流量走隧道（<code>0.0.0.0/0</code>）。
+  <b>右侧</b>：勾选后换成公网段列表，并把 DNS 的 IPv4 地址以 <code>/32</code> 形式补进路由段，
+  于是私有段（如家里的 <code>192.168.x.x</code>）不再被卷进隧道。</figcaption>
+</figure>
+
+<h2 id="appfilter"><span class="no">7</span>应用过滤对话框</h2>
+<p>点「本地」卡片里的「应用过滤」按钮打开对话框。</p>
+<ul>
+  <li><b>两个标签页，二选一</b>：「<b>不生效</b>」（勾选的应用<b>不走</b> VPN）与「<b>生效</b>」
+    （<b>只有</b>勾选的应用走 VPN）。两种模式互斥，打开时会定位到你当前已经配置的那个模式。</li>
+  <li><b>应用列表</b>：列出可被应用过滤识别的、具有网络权限的应用（图标 + 应用名），
+    并且<b>按名称排序</b>；逐项勾选即可。能列出哪些应用由系统决定。
+    如果一个都没列出来，会显示空态「未找到可用应用」；如果读取失败，会提示
+    「获取应用列表时出错：<i>&lt;原因&gt;</i>」并关闭对话框。</li>
+  <li><b>「全选」按钮</b>：文案固定为「全选」，点一下在「全不选/全选」之间切换，
+    作用范围是当前的勾选集合。</li>
+  <li><b>确定按钮</b>的文案会实时反映你的选择：一个应用都没选时是「不设定过滤」；
+    选了应用则是「选定 N 个应用」。</li>
+  <li><b>两个标签页共享同一份勾选</b>：来回切换标签页不会丢失已经勾选的应用；
+    点「确定」时，按你<b>当前所在标签页</b>的模式来应用这份勾选集合。</li>
+  <li>点「取消」或按返回键关闭对话框，都不改动现有的过滤设置。</li>
+</ul>
+<p>确定之后，编辑器里的按钮文案会相应变化：</p>
+<table>
+  <tr><th>你的选择</th><th>编辑器按钮文案</th></tr>
+  <tr><td>没有设置过滤（在对话框里一个都没选并确定）</td><td>应用过滤</td></tr>
+  <tr><td>在「不生效」标签页下选定 N 个应用</td><td>对 N 个应用不生效</td></tr>
+  <tr><td>在「生效」标签页下选定 N 个应用</td><td>对 N 个应用生效</td></tr>
+</table>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="应用过滤对话框示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <g transform="translate(30 64)" stroke="#182431" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="5,-7 -3,0 5,7"/>
+  </g>
+  <text x="46" y="69" font-size="14" font-weight="700" fill="#182431">创建 WireGuard 隧道</text>
+  <text x="284" y="69" font-size="12.5" fill="#0A59F7" text-anchor="end">保存</text>
+  <rect x="16" y="82" width="268" height="120" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="105" font-size="12" font-weight="700" fill="#182431">本地</text>
+  <!-- 遮罩 -->
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#182431" opacity="0.4"/>
+  <!-- 对话框 -->
+  <rect x="16" y="110" width="268" height="350" rx="16" fill="#FFFFFF"/>
+  <!-- 标签页 -->
+  <rect x="36" y="128" width="112" height="30" rx="15" fill="#0A59F7"/>
+  <text x="92" y="148" font-size="12" fill="#FFFFFF" text-anchor="middle">不生效</text>
+  <rect x="152" y="128" width="112" height="30" rx="15" fill="#F4F6F8"/>
+  <text x="208" y="148" font-size="12" fill="#5A6572" text-anchor="middle">生效</text>
+  <!-- 全选 -->
+  <text x="268" y="186" font-size="12" fill="#0A59F7" text-anchor="end">全选</text>
+  <!-- 应用列表 -->
+  <g>
+    <rect x="36" y="198" width="18" height="18" rx="4" fill="#0A59F7"/>
+    <path d="M 40 207 L 44 211 L 51 203" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="66" y="198" width="18" height="18" rx="5" fill="#E3EDFE"/><circle cx="75" cy="207" r="4.5" fill="#0A59F7"/>
+    <text x="96" y="212" font-size="12" fill="#182431">浏览器</text>
+  </g>
+  <g>
+    <rect x="36" y="228" width="18" height="18" rx="4" fill="#0A59F7"/>
+    <path d="M 40 237 L 44 241 L 51 233" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="66" y="228" width="18" height="18" rx="5" fill="#E3EDFE"/><rect x="69" y="231" width="12" height="12" rx="1.5" fill="#0A59F7"/>
+    <text x="96" y="242" font-size="12" fill="#182431">邮件</text>
+  </g>
+  <g>
+    <rect x="36" y="258" width="18" height="18" rx="4" fill="#0A59F7"/>
+    <path d="M 40 267 L 44 271 L 51 263" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="66" y="258" width="18" height="18" rx="5" fill="#E3EDFE"/><path d="M 69 272 L 69 264 L 81 270 L 81 262" stroke="#0A59F7" stroke-width="1.6" fill="none"/>
+    <text x="96" y="272" font-size="12" fill="#182431">云盘</text>
+  </g>
+  <g>
+    <rect x="36" y="288" width="18" height="18" rx="4" fill="#FFFFFF" stroke="#B9C0CA" stroke-width="1.6"/>
+    <rect x="66" y="288" width="18" height="18" rx="5" fill="#E3EDFE"/><circle cx="75" cy="297" r="4.5" fill="none" stroke="#0A59F7" stroke-width="1.6"/>
+    <text x="96" y="302" font-size="12" fill="#182431">地图</text>
+  </g>
+  <g>
+    <rect x="36" y="318" width="18" height="18" rx="4" fill="#FFFFFF" stroke="#B9C0CA" stroke-width="1.6"/>
+    <rect x="66" y="318" width="18" height="18" rx="5" fill="#E3EDFE"/><circle cx="75" cy="327" r="5" fill="#0A59F7"/>
+    <text x="96" y="332" font-size="12" fill="#182431">音乐</text>
+  </g>
+  <g>
+    <rect x="36" y="348" width="18" height="18" rx="4" fill="#FFFFFF" stroke="#B9C0CA" stroke-width="1.6"/>
+    <rect x="66" y="348" width="18" height="18" rx="5" fill="#E3EDFE"/><rect x="70" y="352" width="10" height="10" rx="2" fill="#0A59F7"/>
+    <text x="96" y="362" font-size="12" fill="#182431">备忘录</text>
+  </g>
+  <!-- 确定按钮 -->
+  <rect x="36" y="396" width="228" height="36" rx="18" fill="#0A59F7"/>
+  <text x="150" y="419" font-size="12.5" fill="#FFFFFF" text-anchor="middle">选定 3 个应用</text>
+  <!-- 标注 -->
+  <circle cx="14" cy="143" r="9" fill="#0A59F7"/><text x="14" y="147" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <circle cx="278" cy="186" r="9" fill="#0A59F7"/><text x="278" y="190" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <circle cx="14" cy="414" r="9" fill="#0A59F7"/><text x="14" y="418" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>两个标签页</b>：「不生效」与「生效」互斥；打开时定位到当前已配置的模式。切换标签页不会丢失勾选——两个标签页共享同一份勾选集合。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>「全选」</b>：在「全不选/全选」之间切换；列表按应用名称排序。</span></div>
+    <div class="li"><span class="dot">3</span><span><b>确定按钮</b>：文案实时反映选择——没选任何应用时显示「不设定过滤」，否则显示「选定 N 个应用」。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<h2 id="save"><span class="no">8</span>保存</h2>
+<p>填好后点右上角的「<b>保存</b>」。</p>
+<ol class="steps">
+  <li>保存时会先把<b>所有字段完整校验一遍</b>。任何一处不合格都不会保存，
+    你会留在编辑器里，底部给出具体错误（指出出错字段和原因），例如
+    「在 本地 的 私钥 字段发生了 密钥长度错误 的问题」。</li>
+  <li>校验通过后按情形保存，并给出对应提示：
+    <table>
+      <tr><th>情形</th><th>提示</th></tr>
+      <tr><td>新建（从「手动创建」进来的空白编辑器）</td><td>成功创建隧道 '<i>&lt;名称&gt;</i>'</td></tr>
+      <tr><td>改名（名称和原来不一样）</td><td>已保存 '<i>&lt;新名称&gt;</i>' 的配置</td></tr>
+      <tr><td>修改（名称没变）</td><td>已保存 '<i>&lt;名称&gt;</i>' 的配置</td></tr>
+    </table>
+  </li>
+  <li>三种情形保存成功后都一样：<b>退出编辑器，返回该隧道的详情页</b>。</li>
+</ol>
+<div class="note">密钥长度不合规时原因显示为「密钥长度错误」；密钥里出现了允许字符以外的内容时
+    显示「密钥中含错误字符」（正常情况下输入框已经拦住了非法字符，这条只在少数非常规输入或保存校验时出现）。
+端口、保活间隔、MTU 等数值非法时会附带具体原因，例如「必须为有效的 UDP 端口号」「必须为 0–65535 的整数」「必须为非负整数」。</div>
+
+<h3>保存失败时你会看到什么</h3>
+<table>
+  <tr><th>失败类型</th><th>提示</th></tr>
+  <tr><td>某个字段校验不合格</td>
+      <td>只提示错误本身，例如「在 本地 的 私钥 字段发生了 密钥长度错误 的问题」。</td></tr>
+  <tr><td>名称为空、含非法字符或超长</td>
+      <td>新建时「无法创建隧道：名称无效」；改名时「无法重命名隧道：名称无效」。</td></tr>
+  <tr><td>新建时名称与已有隧道重复</td>
+      <td>「无法创建隧道：名称 '<i>&lt;名称&gt;</i>' 已存在」。</td></tr>
+  <tr><td>改名时新名称与已有隧道重复</td>
+      <td>「无法重命名隧道：名称 '<i>&lt;名称&gt;</i>' 已存在」。</td></tr>
+  <tr><td>其他保存失败</td>
+      <td>「无法保存 '<i>&lt;名称&gt;</i>' 的配置：<i>&lt;原因&gt;</i>」。</td></tr>
+</table>
+
+<div class="warn">你正在编辑的隧道如果<b>处于已连接状态</b>，保存后会<b>先断开、再用新配置立即重连</b>，
+    中间有短暂中断；开关会保持「已连接」的样子，如果重连失败则按真实状态显示并提示原因。
+    详情见<a href="tunnel-connection.html">连接与断开</a>。</div>
+
+<h2><span class="no">9</span>常见问题</h2>
+<table>
+  <tr><th>现象</th><th>原因与处理</th></tr>
+  <tr>
+    <td>点私钥字段弹出系统认证框</td>
+    <td>这是私钥的查看保护，属于正常表现。用生物识别或锁屏凭证通过一次即可，
+      本次编辑会话内不再询问；旋转屏幕后需要重新认证。详见<a href="#privatekey">第 4 节</a>。</td>
+  </tr>
+  <tr>
+    <td>提示「认证失败」或「认证失败：&lt;原因&gt;」</td>
+    <td>密钥保持遮挡。重新点击字段、再次认证即可；如果是系统错误，可按提示中的原因排查后重试。</td>
+  </tr>
+  <tr>
+    <td>名称明明没重复，却提示「已存在」</td>
+    <td>重名判断区分大小写：<code>Home</code> 和 <code>home</code> 被当作两个不同的名称。
+      请确认是否与某个已有名称完全一致，或换一个名称。</td>
+  </tr>
+  <tr>
+    <td>找不到「排除局域网」复选框</td>
+    <td>它只在「只有一个远程卡片，且路由段包含 <code>0.0.0.0/0</code>」时出现。
+      检查一下「远程」卡片的数量，以及路由段是否被手工改过。详见<a href="#lan">第 6 节</a>。</td>
+  </tr>
+  <tr>
+    <td>应用过滤对话框里一个应用都没有</td>
+    <td>显示空态「未找到可用应用」；此时无法设置过滤，可以先直接确定（按钮显示「不设定过滤」）再退出。</td>
+  </tr>
+  <tr>
+    <td>勾选「排除局域网」后想去掉</td>
+    <td>再次点该复选框取消勾选：路由段会恢复为 <code>0.0.0.0/0</code>，
+      自动补入的 DNS <code>/32</code> 路由也会一并移除。</td>
+  </tr>
+  <tr>
+    <td>编辑了正在连接的隧道，保存后它断开又自动重连了</td>
+    <td>这是预期行为：编辑正在连接的隧道，保存后会断开并以新配置立即重连，有短暂中断。</td>
+  </tr>
+  <tr>
+    <td>编辑到一半切到后台或转屏</td>
+    <td>已经输入的内容不会丢失；已经明文显示的密钥会恢复为遮挡，再查看时需要重新认证。</td>
+  </tr>
+  <tr>
+    <td>什么都没改就返回了</td>
+    <td>未做任何修改直接返回时，不会保存也不会提示，直接回到上一页。</td>
+  </tr>
+</table>
+<div class="tip">编辑过程中可以放心切到别的应用查资料，回来时输入的内容还在；
+    想放弃修改就直接返回——只要没点过「保存」，已保存的配置就不会变。</div>
+
+<nav class="foot-nav">
+  <span class="prev"><a href="tunnel-import.html">← 上一页：导入隧道</a></span>
+  <span class="next"><a href="tunnel-detail.html">下一页：隧道详情 →</a></span>
+</nav>
+
+</div>
+</body>
+</html>

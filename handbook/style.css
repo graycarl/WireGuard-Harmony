@@ -1,0 +1,171 @@
+/* WireGuard HarmonyOS 用户手册 —— 共享样式 */
+:root {
+  /* 页面 CSS 调色板；SVG 示意图调色板：#0A59F7 #D93025(失败提示) #182431 #F1F3F5
+     #26303C(提示条) #5A6572 #97A0AB #B9C0CA #C7CDD6 #E4E7EB #F4F6F8 #FFFFFF
+     #EAF1FE #E3EDFE #10141A #D4D9DF */
+  --brand: #0A59F7;
+  --brand-dark: #0A49C7;
+  --wg-red: #88171A;
+  --ink: #182431;
+  --ink-2: #5A6572;
+  --ink-3: #97A0AB;
+  --line: #E4E7EB;
+  --bg: #F4F6F8;
+  --card: #FFFFFF;
+  --danger: #E84026;
+  --ok: #17A05E;
+  --phone-bg: #F1F3F5;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: -apple-system, "HarmonyOS Sans SC", "HarmonyOS Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.75;
+  font-size: 15.5px;
+}
+
+.wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 80px; }
+
+/* ---------- 页头 ---------- */
+.page-head { margin-bottom: 8px; }
+.page-head .crumb {
+  font-size: 13px; color: var(--ink-3); margin-bottom: 10px;
+}
+.page-head .crumb a { color: var(--brand); text-decoration: none; }
+.page-head h1 {
+  font-size: 28px; line-height: 1.3; margin: 0 0 8px;
+  letter-spacing: 0.2px;
+}
+.page-head .lede { color: var(--ink-2); font-size: 15.5px; margin: 0; }
+
+/* ---------- 章节 ---------- */
+h2 {
+  font-size: 20px; margin: 44px 0 6px; padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+h2 .no {
+  display: inline-block; min-width: 26px; height: 26px; line-height: 26px;
+  text-align: center; border-radius: 8px; background: var(--brand);
+  color: #fff; font-size: 14px; margin-right: 8px; vertical-align: 2px;
+}
+h3 { font-size: 16.5px; margin: 26px 0 8px; }
+p { margin: 10px 0; }
+ul, ol { margin: 8px 0; padding-left: 22px; }
+li { margin: 4px 0; }
+a { color: var(--brand); }
+code, kbd {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  background: #E4E7EB; border: 1px solid var(--line);
+  border-radius: 5px; padding: 1px 6px; font-size: 13.5px;
+}
+
+/* ---------- 步骤 ---------- */
+.steps { counter-reset: step; list-style: none; padding-left: 0; }
+.steps > li {
+  counter-increment: step; position: relative;
+  padding: 2px 0 12px 42px;
+}
+.steps > li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 2px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--brand); color: #fff;
+  font-size: 14px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.steps > li:not(:last-child)::after {
+  content: ""; position: absolute; left: 13.5px; top: 34px; bottom: 2px;
+  width: 2px; background: var(--line);
+}
+
+/* ---------- 截图（内联 SVG 手机示意图） ---------- */
+figure.shot {
+  margin: 18px 0; padding: 22px 16px 14px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); text-align: center;
+}
+figure.shot svg {
+  width: 270px; max-width: 82vw; height: auto;
+  filter: drop-shadow(0 8px 20px rgba(24, 36, 49, .14));
+}
+figure.shot.shot-wide svg { width: 560px; max-width: 96%; }
+figcaption {
+  margin-top: 12px; font-size: 13px; color: var(--ink-3);
+}
+figcaption b { color: var(--ink-2); font-weight: 600; }
+
+/* 标注图例 */
+.legend { text-align: left; max-width: 560px; margin: 10px auto 0; }
+.legend .li { display: flex; gap: 10px; align-items: flex-start; margin: 6px 0; font-size: 14px; color: var(--ink-2); }
+.legend .dot {
+  flex: none; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--brand); color: #fff; font-size: 12px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; margin-top: 3px;
+}
+
+/* ---------- 表格 ---------- */
+table {
+  width: 100%; border-collapse: collapse; margin: 14px 0;
+  background: var(--card); border-radius: var(--radius);
+  overflow: hidden; font-size: 14px;
+  box-shadow: 0 0 0 1px var(--line);
+}
+th, td { padding: 10px 14px; text-align: left; vertical-align: top; }
+th { background: #F0F3F6; font-weight: 600; white-space: nowrap; }
+tr + tr td { border-top: 1px solid var(--line); }
+td code { white-space: nowrap; }
+
+/* ---------- 提示块 ---------- */
+.note, .warn, .tip {
+  margin: 16px 0; padding: 12px 16px 12px 44px; position: relative;
+  border-radius: 12px; font-size: 14.5px;
+}
+.note { background: #EAF1FE; color: #1D4ED8; }
+.warn { background: #FDEEE9; color: #B4371F; }
+.tip  { background: #E7F6EE; color: #14683D; }
+.note::before, .warn::before, .tip::before {
+  position: absolute; left: 16px; top: 12px;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px; font-weight: 700;
+}
+.note::before { content: "i"; background: var(--brand); }
+.warn::before { content: "!"; background: var(--danger); }
+.tip::before  { content: "✓"; background: var(--ok); }
+
+/* ---------- 页脚导航 ---------- */
+.foot-nav {
+  display: flex; justify-content: space-between; gap: 12px;
+  margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+.foot-nav a { text-decoration: none; color: var(--brand); }
+.foot-nav .prev { text-align: left; }
+.foot-nav .next { text-align: right; }
+
+/* ---------- 目录页 ---------- */
+.hero {
+  background: linear-gradient(135deg, var(--wg-red), #B02830);
+  color: #fff; border-radius: 18px; padding: 34px 30px; margin-bottom: 26px;
+}
+.hero h1 { margin: 0 0 6px; font-size: 30px; }
+.hero p { margin: 0; opacity: .92; }
+.toc { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.toc a {
+  display: block; background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 14px 16px; text-decoration: none;
+  color: var(--ink);
+}
+.toc a b { display: block; font-size: 15.5px; margin-bottom: 2px; }
+.toc a span { font-size: 13px; color: var(--ink-3); }
+.toc a:hover { border-color: var(--brand); }
+
+@media (max-width: 560px) {
+  .wrap { padding: 20px 14px 60px; }
+  .page-head h1 { font-size: 24px; }
+}

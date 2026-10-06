@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>连接与断开 · WireGuard 用户手册</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="page-head">
+  <div class="crumb"><a href="index.html">手册首页</a> / 连接与断开</div>
+  <h1>连接与断开</h1>
+  <p class="lede">开关就是连接：拨到「开」即连接，拨到「关」即断开。这一章讲清楚
+    连接过程中你会看到什么（系统授权、状态栏标志、底部提示），
+    状态为什么会自己变化，以及失败时该怎么办。</p>
+</header>
+
+<h2><span class="no">1</span>开关就是连接</h2>
+<p>连接和断开都用同一个开关完成，两处入口效果完全一样：</p>
+<ul>
+  <li><b>隧道列表</b>：每一项右侧的开关；</li>
+  <li><b>隧道详情页</b>：页面上的开关。</li>
+</ul>
+<p>拨到「<b>开</b>」＝连接；拨到「<b>关</b>」＝断开。连接成功后，系统里就多出一条
+正在使用的 VPN 连接：<b>状态栏出现 VPN 标志</b>。
+断开后这个标志消失。</p>
+<div class="tip">判断连接是否真的生效，最可靠的是系统状态栏的 VPN 标志：
+连接成功时它会出现，断开时它会消失。如果连接失败，开关会自动弹回原位并给出底部提示。</div>
+<div class="note">系统同时只允许一条 VPN 连接，因此任何时刻最多只有一条隧道是「开」的。
+要换一条隧道，直接拨开新的那条即可，见<a href="#switch">第 4 节</a>。</div>
+
+<h2><span class="no">2</span>第一次连接：让系统允许 VPN</h2>
+<p>建立 VPN 连接需要系统批准，这是系统对所有 VPN 应用统一的安全机制，不是本应用自己弹的框。</p>
+<ol class="steps">
+  <li>把隧道开关拨到「<b>开</b>」。</li>
+  <li>拨动后开关立即显示到新位置，但在结果出来之前<b>不能再次点击</b>（没有单独的「连接中」样式），
+    直到这次连接的结果确定。</li>
+  <li>系统弹出 <b>VPN 授权框</b>。</li>
+  <li>点「<b>允许</b>」→ 继续建立连接；成功后开关停在「开」，状态栏出现 VPN 标志。</li>
+  <li>点「<b>取消</b>」或直接关掉授权框 → 视为本次操作结束：
+    开关自动<b>弹回原位</b>，页面底部提示
+    「建立连接时出错：用户未授权 VPN 服务」。之后再次拨动开关会重新弹出授权框。</li>
+</ol>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="系统 VPN 授权框示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <!-- 状态栏 -->
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <!-- 标题栏 -->
+  <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+  <!-- 隧道列表：正在尝试连接第一条 -->
+  <g>
+    <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+    <rect x="222" y="108" width="40" height="24" rx="12" fill="#0A59F7"/>
+    <circle cx="251" cy="120" r="10" fill="#fff"/>
+  </g>
+  <g>
+    <rect x="16" y="154" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="186" font-size="15" fill="#182431">home-nas</text>
+    <rect x="222" y="168" width="40" height="24" rx="12" fill="#C7CDD6"/>
+    <circle cx="231" cy="180" r="10" fill="#fff"/>
+  </g>
+  <g>
+    <rect x="16" y="214" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="246" font-size="15" fill="#182431">overseas</text>
+    <rect x="222" y="228" width="40" height="24" rx="12" fill="#C7CDD6"/>
+    <circle cx="231" cy="240" r="10" fill="#fff"/>
+  </g>
+  <!-- 遮罩 -->
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#182431" opacity="0.32"/>
+  <!-- 系统授权对话框 -->
+  <rect x="28" y="214" width="244" height="166" rx="18" fill="#FFFFFF"/>
+  <text x="150" y="252" font-size="16" font-weight="700" fill="#182431" text-anchor="middle">WireGuard</text>
+  <text x="150" y="286" font-size="13" fill="#182431" text-anchor="middle">是否允许建立 VPN 连接？</text>
+  <line x1="28" y1="324" x2="272" y2="324" stroke="#E4E7EB"/>
+  <line x1="150" y1="324" x2="150" y2="380" stroke="#E4E7EB"/>
+  <text x="89" y="358" font-size="15" fill="#5A6572" text-anchor="middle">取消</text>
+  <text x="211" y="358" font-size="15" font-weight="600" fill="#0A59F7" text-anchor="middle">允许</text>
+  <!-- 标注 -->
+  <circle cx="14" cy="284" r="9" fill="#0A59F7"/><text x="14" y="288" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <circle cx="272" cy="358" r="9" fill="#0A59F7"/><text x="272" y="362" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>系统 VPN 授权框</b>：由系统弹出（界面文案以系统为准），点「取消」即为不授权。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>「允许」</b>：同意后连接才会继续。此时开关正处于「不能点击」的等待状态。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<div class="note">授权框可能只在第一次连接时出现，也可能每次连接都出现，由系统决定。
+无论何时弹出，点「允许」即可继续；不授权就不会连接。</div>
+
+<h2><span class="no">3</span>每天的开启与关闭</h2>
+<h3>开启</h3>
+<ol class="steps">
+  <li>拨开开关，等待结果（期间开关暂时点不动）。</li>
+  <li><b>成功</b>：开关停在「开」并保持（示意图中为蓝色），状态栏出现 VPN 标志。</li>
+  <li><b>失败</b>：开关自动弹回原位，页面底部提示「建立连接时出错：&lt;原因&gt;」。</li>
+</ol>
+<h3>关闭</h3>
+<ol class="steps">
+  <li>拨到「关」，隧道断开，开关停在「关」，状态栏的 VPN 标志消失。</li>
+  <li><b>关闭失败（很少见）</b>：开关弹回原位，提示「断开连接时出错：&lt;原因&gt;」。</li>
+</ol>
+<p>这两种失败的含义是一样的：<b>这一次操作没有生效</b>，当前状态仍是操作前的状态。
+失败原因的完整列表见<a href="#trouble">第 9 节</a>。</p>
+<div class="note">连接或断开的过程中，你仍然可以对这条隧道做编辑、删除等操作，不会被拦住；
+最终界面显示的状态，以系统的真实结果为准。</div>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="连接失败后开关弹回示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <!-- 状态栏（无 VPN 标志） -->
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+  <!-- 列表：全部为未连接（开关已弹回） -->
+  <g>
+    <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+    <rect x="222" y="108" width="40" height="24" rx="12" fill="#C7CDD6"/>
+    <circle cx="231" cy="120" r="10" fill="#fff"/>
+  </g>
+  <g>
+    <rect x="16" y="154" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="186" font-size="15" fill="#182431">home-nas</text>
+    <rect x="222" y="168" width="40" height="24" rx="12" fill="#C7CDD6"/>
+    <circle cx="231" cy="180" r="10" fill="#fff"/>
+  </g>
+  <g>
+    <rect x="16" y="214" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="246" font-size="15" fill="#182431">overseas</text>
+    <rect x="222" y="228" width="40" height="24" rx="12" fill="#C7CDD6"/>
+    <circle cx="231" cy="240" r="10" fill="#fff"/>
+  </g>
+  <!-- 底部提示 -->
+  <rect x="14" y="549" width="272" height="40" rx="12" fill="#D93025"/>
+  <text x="150" y="574" font-size="11" fill="#FFFFFF" text-anchor="middle">建立连接时出错：用户未授权 VPN 服务</text>
+  <!-- 标注 -->
+  <circle cx="278" cy="120" r="9" fill="#0A59F7"/><text x="278" y="124" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <circle cx="14" cy="569" r="9" fill="#0A59F7"/><text x="14" y="573" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>开关弹回原位</b>：显示为未连接。连接失败、断开失败都会这样表现。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>页面底部提示</b>：这次操作失败的原因。图中以「建立连接时出错：用户未授权 VPN 服务」为例。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<h2><span class="no">4</span>同时只能连一条：切换隧道</h2>
+<p id="switch">系统同时只允许一条 VPN 连接，所以一条隧道已连接时，直接拨开另一条即可完成切换，
+<b>不需要你先手动断开原来的那条</b>。应用会自动「先断开旧的，再连接新的」。</p>
+<p>下面以「<b>company-vpn</b>」（已连接，记作 A）和「<b>home-nas</b>」（记作 B）为例。</p>
+<ol class="steps">
+  <li>拨开新隧道（B）的开关。</li>
+  <li>切换过程中，<b>A、B 两个开关都暂时不能点击</b>。</li>
+  <li><b>B 连接成功</b>：A 显示为「关」并恢复可用，B 变为「开」。</li>
+  <li><b>B 连接失败</b>：应用会自动把 A <b>恢复为已连接</b>（A 的开关先关后开），
+    B 的开关弹回原位，并提示「建立连接时出错：&lt;原因&gt;」。</li>
+</ol>
+
+<figure class="shot shot-wide">
+<svg viewBox="0 0 620 670" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="切换隧道成功示意图">
+  <!-- 左：切换前 -->
+  <text x="150" y="20" font-size="13" font-weight="700" fill="#5A6572" text-anchor="middle">切换前</text>
+  <text x="150" y="38" font-size="12" fill="#97A0AB" text-anchor="middle">company-vpn 已连接</text>
+  <g transform="translate(0 50)">
+    <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+    <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+    <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+    <text x="210" y="26" font-size="9" font-weight="700" fill="#182431" text-anchor="end">VPN</text>
+    <g fill="#182431">
+      <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+      <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+    </g>
+    <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+    <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+    <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+    <g>
+      <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+      <rect x="222" y="108" width="40" height="24" rx="12" fill="#0A59F7"/>
+      <circle cx="251" cy="120" r="10" fill="#fff"/>
+    </g>
+    <g>
+      <rect x="16" y="154" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="186" font-size="15" fill="#182431">home-nas</text>
+      <rect x="222" y="168" width="40" height="24" rx="12" fill="#C7CDD6"/>
+      <circle cx="231" cy="180" r="10" fill="#fff"/>
+    </g>
+    <g>
+      <rect x="16" y="214" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="246" font-size="15" fill="#182431">overseas</text>
+      <rect x="222" y="228" width="40" height="24" rx="12" fill="#C7CDD6"/>
+      <circle cx="231" cy="240" r="10" fill="#fff"/>
+    </g>
+    <circle cx="278" cy="120" r="9" fill="#0A59F7"/><text x="278" y="124" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+    <circle cx="278" cy="180" r="9" fill="#0A59F7"/><text x="278" y="184" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  </g>
+  <!-- 右：切换完成 -->
+  <text x="470" y="20" font-size="13" font-weight="700" fill="#5A6572" text-anchor="middle">切换完成后</text>
+  <text x="470" y="38" font-size="12" fill="#97A0AB" text-anchor="middle">company-vpn 自动断开，home-nas 已连接</text>
+  <g transform="translate(320 50)">
+    <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+    <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+    <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+    <text x="210" y="26" font-size="9" font-weight="700" fill="#182431" text-anchor="end">VPN</text>
+    <g fill="#182431">
+      <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+      <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+    </g>
+    <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+    <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+    <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+    <g>
+      <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+      <rect x="222" y="108" width="40" height="24" rx="12" fill="#C7CDD6"/>
+      <circle cx="231" cy="120" r="10" fill="#fff"/>
+    </g>
+    <g>
+      <rect x="16" y="154" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="186" font-size="15" fill="#182431">home-nas</text>
+      <rect x="222" y="168" width="40" height="24" rx="12" fill="#0A59F7"/>
+      <circle cx="251" cy="180" r="10" fill="#fff"/>
+    </g>
+    <g>
+      <rect x="16" y="214" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="246" font-size="15" fill="#182431">overseas</text>
+      <rect x="222" y="228" width="40" height="24" rx="12" fill="#C7CDD6"/>
+      <circle cx="231" cy="240" r="10" fill="#fff"/>
+    </g>
+    <circle cx="278" cy="120" r="9" fill="#0A59F7"/><text x="278" y="124" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+  </g>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>当前已连接</b>：company-vpn 的开关处于已连接状态（示意图中为蓝色）。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>直接拨开另一条</b>：拨开「home-nas」的开关，应用会自动先断开「company-vpn」。</span></div>
+    <div class="li"><span class="dot">3</span><span><b>切换完成</b>：company-vpn 变为未连接，home-nas 变为已连接（示意图中以灰色/蓝色区分）。切换过程中两个开关都点不动。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<figure class="shot shot-wide">
+<svg viewBox="0 0 620 670" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="切换隧道失败并自动恢复示意图">
+  <!-- 左：新隧道连接失败 -->
+  <text x="150" y="20" font-size="13" font-weight="700" fill="#5A6572" text-anchor="middle">home-nas 连接失败</text>
+  <text x="150" y="38" font-size="12" fill="#97A0AB" text-anchor="middle">开关弹回，底部提示原因</text>
+  <g transform="translate(0 50)">
+    <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+    <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+    <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+    <g fill="#182431">
+      <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+      <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+    </g>
+    <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+    <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+    <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+    <g>
+      <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+      <rect x="222" y="108" width="40" height="24" rx="12" fill="#C7CDD6"/>
+      <circle cx="231" cy="120" r="10" fill="#fff"/>
+    </g>
+    <g>
+      <rect x="16" y="154" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="186" font-size="15" fill="#182431">home-nas</text>
+      <rect x="222" y="168" width="40" height="24" rx="12" fill="#C7CDD6"/>
+      <circle cx="231" cy="180" r="10" fill="#fff"/>
+    </g>
+    <g>
+      <rect x="16" y="214" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="246" font-size="15" fill="#182431">overseas</text>
+      <rect x="222" y="228" width="40" height="24" rx="12" fill="#C7CDD6"/>
+      <circle cx="231" cy="240" r="10" fill="#fff"/>
+    </g>
+    <rect x="14" y="549" width="272" height="40" rx="12" fill="#D93025"/>
+    <text x="150" y="574" font-size="11" fill="#FFFFFF" text-anchor="middle">建立连接时出错：&lt;原因&gt;</text>
+    <circle cx="278" cy="180" r="9" fill="#0A59F7"/><text x="278" y="184" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+    <circle cx="14" cy="569" r="9" fill="#0A59F7"/><text x="14" y="573" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  </g>
+  <!-- 右：原隧道自动恢复 -->
+  <text x="470" y="20" font-size="13" font-weight="700" fill="#5A6572" text-anchor="middle">随后自动恢复</text>
+  <text x="470" y="38" font-size="12" fill="#97A0AB" text-anchor="middle">company-vpn 重新变为已连接</text>
+  <g transform="translate(320 50)">
+    <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+    <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+    <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+    <text x="210" y="26" font-size="9" font-weight="700" fill="#182431" text-anchor="end">VPN</text>
+    <g fill="#182431">
+      <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+      <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+    </g>
+    <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+    <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+    <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+    <g>
+      <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+      <rect x="222" y="108" width="40" height="24" rx="12" fill="#0A59F7"/>
+      <circle cx="251" cy="120" r="10" fill="#fff"/>
+    </g>
+    <g>
+      <rect x="16" y="154" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="186" font-size="15" fill="#182431">home-nas</text>
+      <rect x="222" y="168" width="40" height="24" rx="12" fill="#C7CDD6"/>
+      <circle cx="231" cy="180" r="10" fill="#fff"/>
+    </g>
+    <g>
+      <rect x="16" y="214" width="268" height="52" rx="12" fill="#FFFFFF"/>
+      <text x="32" y="246" font-size="15" fill="#182431">overseas</text>
+      <rect x="222" y="228" width="40" height="24" rx="12" fill="#C7CDD6"/>
+      <circle cx="231" cy="240" r="10" fill="#fff"/>
+    </g>
+    <circle cx="278" cy="120" r="9" fill="#0A59F7"/><text x="278" y="124" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+  </g>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>新隧道失败</b>：home-nas 的开关弹回原位。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>底部提示原因</b>：「建立连接时出错：&lt;原因&gt;」。</span></div>
+    <div class="li"><span class="dot">3</span><span><b>不用你操作</b>：应用会自动把 company-vpn 恢复为已连接并继续使用它。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<div class="warn">如果切换失败的原因是有别的 VPN 应用占用了 VPN 通道，提示会是
+「建立连接时出错：系统同时只允许一条 VPN 连接，请先断开其他 VPN 后重试」。
+这时请先到系统设置里断开那个 VPN，再回来重试。</div>
+
+<h2><span class="no">5</span>网络变化时</h2>
+<table>
+  <tr><th>情况</th><th>表现</th></tr>
+  <tr><td>Wi-Fi 与移动数据之间切换</td>
+      <td><b>连接保持</b>，开关不变，不需要重连。</td></tr>
+  <tr><td>无网络 / 飞行模式下拨开开关</td>
+      <td>按连接失败处理：开关弹回原位，提示「建立连接时出错：&lt;原因&gt;」
+        （原因是系统返回的网络错误）。</td></tr>
+  <tr><td>网络恢复之后</td>
+      <td><b>不会自动重连</b>，需要你手动拨开开关。</td></tr>
+</table>
+<div class="note">出门在外从 Wi-Fi 切到移动数据时不必担心，隧道会自己跟过去；
+但如果是先断了网再想连，就得等网络恢复后手动打开。</div>
+
+<h2><span class="no">6</span>状态为什么「自己会动」</h2>
+<p>开关显示的状态<b>永远以系统侧真实的 VPN 状态为准</b>，而不是你最后一次点击的意图。
+下面这些情况发生时，开关会自动纠正到正确位置，不需要你操作：</p>
+<ul>
+  <li>你在<b>系统设置</b>里手动关闭了本应用的 VPN；</li>
+  <li>应用进程被系统结束，导致 VPN 断开；</li>
+  <li><b>其他 VPN 应用抢占</b>了 VPN 通道（此时本应用的隧道会断开；反过来，
+    你在这里发起连接时也可能顶掉别的 VPN 应用，具体由系统决定）。</li>
+</ul>
+<p>另外，从其他页面（编辑器、设置等）<b>回到隧道列表或详情页</b>时，
+开关也会刷新为最新的真实状态。</p>
+<div class="tip">所以看到开关「自己」回到未连接状态，不是异常，而是它在如实汇报：
+VPN 已经在系统侧断开了。想继续用，再拨一次开关即可。</div>
+
+<h2><span class="no">7</span>修改或改名已连接的隧道</h2>
+<h3>保存配置改动</h3>
+<p>在编辑器里保存一条<b>正在连接</b>的隧道：应用会断开它，并立即用新配置重新连接，
+期间会有<b>短暂中断</b>，界面上开关保持「已连接」。如果重连失败，开关会按真实状态呈现，
+并提示失败原因。</p>
+<h3>重命名</h3>
+<p>改名一条正在连接的隧道时，应用会：<b>先断开 → 改名 → 用新名称自动重新连接</b>。</p>
+<table>
+  <tr><th>失败情形</th><th>提示</th><th>结果</th></tr>
+  <tr><td>改名失败（含其中的断开、重连失败）</td>
+      <td>「无法重命名隧道：&lt;底层原因&gt;」</td>
+      <td>隧道保持断开，以实际生效的名称显示，开关按真实状态呈现，<b>不会自动重试</b>。</td></tr>
+  <tr><td>改名成功，但随后的配置保存失败</td>
+      <td>「无法保存 '&lt;新名称&gt;' 的配置：&lt;原因&gt;」</td>
+      <td>名称已改为新名称，但这次配置保存没有成功。</td></tr>
+</table>
+<p>配置编辑与改名的完整操作见<a href="tunnel-editor.html">隧道编辑器</a>。</p>
+
+<h2><span class="no">8</span>删除已连接的隧道</h2>
+<ul>
+  <li><b>单条删除</b>（列表里多选删除）：先断开连接，再删除。
+    断开失败则<b>不执行这一项的删除</b>；删除失败则<b>恢复原连接</b>，隧道保留在列表中。</li>
+  <li><b>批量删除中含已连接项</b>：已连接项先断开。断开失败的项计入失败数，
+    <b>整批继续处理其余项</b>，结果提示为「无法删除 N 项：&lt;原因&gt;」
+    （N ＝ 断开失败的项数 ＋ 删除失败的项数）。</li>
+</ul>
+<p>完整操作见<a href="tunnel-list.html">隧道列表</a>的「批量删除隧道」一节。</p>
+
+<h2 id="trouble"><span class="no">9</span>连接失败排查表</h2>
+<p>连接失败时，页面底部的完整提示是「建立连接时出错：&lt;原因&gt;」；
+断开失败（很少见）是「断开连接时出错：&lt;原因&gt;」。下表列出的是其中
+<b>&lt;原因&gt;</b> 部分的文案和对应的处理办法。</p>
+<table>
+  <tr><th>提示里出现的原因</th><th>什么情况下出现</th><th>你可以怎么做</th></tr>
+  <tr><td>用户未授权 VPN 服务</td>
+      <td>在系统 VPN 授权框上点了「取消」或直接关掉了授权框。</td>
+      <td>再拨一次开关，在授权框弹出时点「允许」。</td></tr>
+  <tr><td>无法创建 tun 设备</td>
+      <td>系统没能创建 VPN 虚拟网卡。</td>
+      <td>先断开其他 VPN 应用再重试；如果反复出现，重启手机后再试。</td></tr>
+  <tr><td>无法启动 VPN 服务</td>
+      <td>系统的 VPN 服务没能启动。</td>
+      <td>稍等片刻重试；持续出现时重启手机，或到设置页导出日志反馈。</td></tr>
+  <tr><td>无法开启隧道（错误码 N）</td>
+      <td>隧道启动失败，N 是系统返回的错误码。</td>
+      <td>重试；反复出现时记下错误码，到设置页导出日志反馈。</td></tr>
+  <tr><td>无法解析 DNS 主机名：'&lt;主机名&gt;'</td>
+      <td>配置里的服务端域名解析不出来（网络不通，或域名写错）。</td>
+      <td>检查当前网络是否可用；核对域名拼写。若服务端有固定 IP，
+        可在编辑器里把「对端」改成 IP 地址后保存。</td></tr>
+  <tr><td>尝试在无配置情况下建立连接</td>
+      <td>这条隧道没有保存的配置。</td>
+      <td>重新导入或手动创建配置（见<a href="tunnel-import.html">导入隧道</a>、
+        <a href="tunnel-editor.html">隧道编辑器</a>）。</td></tr>
+  <tr><td>系统同时只允许一条 VPN 连接，请先断开其他 VPN 后重试</td>
+      <td>有别的 VPN 应用正占用 VPN 通道。</td>
+      <td>到系统设置里断开那个 VPN，再回来拨开开关。</td></tr>
+  <tr><td>未知的 '&lt;描述&gt;' 错误</td>
+      <td>系统返回了应用不认识的错误，引号里是系统给出的原文。</td>
+      <td>重试；反复出现时到设置页导出日志反馈。</td></tr>
+</table>
+<div class="note">开关弹回原位只代表<b>这一次操作没有生效</b>，不代表隧道坏了：
+修好原因后直接再拨一次开关就行，不会留下中间状态。</div>
+<div class="warn">配置里缺少本机地址或路由段（包括一个对端都没有）时，应用<b>不会提前拦截</b>，
+而是直接尝试连接。这种情况下连接可能成功，但实际没有任何可用的网络。</div>
+
+<h2><span class="no">10</span>应用不会自动重连</h2>
+<div class="note">本应用<b>不提供任何形式的开机或启动自动重连</b>：重启手机、重新打开应用、
+或者让系统在后台重新拉起应用之后，所有隧道都显示为断开，需要你手动拨开开关。
+（自动重连还会重新弹出系统授权框，因此不做这种设计。）</div>
+<p>如果你希望一开机就上网，只能每次开机后打开应用、拨一下开关。</p>
+
+<nav class="foot-nav">
+  <span class="prev"><a href="tunnel-detail.html">← 上一页：隧道详情</a></span>
+  <span class="next"><a href="settings.html">下一页：设置 →</a></span>
+</nav>
+
+</div>
+</body>
+</html>

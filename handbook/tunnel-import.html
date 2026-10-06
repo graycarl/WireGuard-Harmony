@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>导入隧道 · WireGuard 用户手册</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="page-head">
+  <div class="crumb"><a href="index.html">手册首页</a> / 导入隧道</div>
+  <h1>导入隧道</h1>
+  <p class="lede">把别人给你的 WireGuard 配置变成应用里的隧道。你可以导入单个
+    <code>.conf</code> 文件、导入 <code>.zip</code> 压缩包一次建多条、用相机扫二维码，
+    或者从一张图片里识别二维码。导入过程中应用会帮你检查配置是否合格，并把结果告诉你。</p>
+</header>
+
+<h2 id="s1"><span class="no">1</span>四种导入方式</h2>
+<p>按你手头拿到的材料选一种即可：</p>
+<ul>
+  <li><b>单个 <code>.conf</code> 文件</b>：最常用。选一个配置文件，立刻建成一条隧道，
+    隧道名称取自文件名。详见<a href="#s3">第 3 节</a>。</li>
+  <li><b><code>.zip</code> 压缩包</b>：一次导入多条。压缩包里每个 <code>.conf</code>
+    都会变成一条独立隧道，某个文件不合格不影响其他文件。详见<a href="#s4">第 4 节</a>。</li>
+  <li><b>相机扫描二维码</b>：服务端给你一张配置二维码时，用相机对准它即可。详见<a href="#s5">第 5 节</a>。</li>
+  <li><b>从图片识别二维码</b>：二维码已经存成图片（比如聊天里收到的截图）时，
+    在文件选择界面里选中这张图片，应用会自动识别。详见<a href="#s6">第 6 节</a>。</li>
+</ul>
+<p>四种方式最终都会得到同一种结果：一条出现在隧道列表里的隧道，之后的操作和其他隧道完全一样。</p>
+
+<h2 id="s2"><span class="no">2</span>从哪里开始：列表页的两个入口</h2>
+<ol class="steps">
+  <li>打开应用的隧道列表页（首页）。</li>
+  <li>点击右下角的「<b>+</b>」按钮，底部升起一个面板。</li>
+  <li>选择「<b>导入配置或压缩包</b>」——用于导入 <code>.conf</code> 文件、
+    <code>.zip</code> 压缩包，以及从图片识别二维码（见<a href="#s6">第 6 节</a>）。</li>
+  <li>或选择「<b>扫描二维码</b>」——用相机当场扫一个配置二维码。</li>
+</ol>
+<p>面板里还有一项「手动创建」，是逐项填写配置的方式，见
+  <a href="tunnel-editor.html">隧道编辑器</a>。点面板外的灰色区域可以直接关掉面板，什么也不会发生。</p>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="添加面板中的两个导入入口示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <text x="210" y="26" font-size="9" font-weight="700" fill="#182431" text-anchor="end">VPN</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+  <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+  <rect x="222" y="108" width="40" height="24" rx="12" fill="#0A59F7"/>
+  <circle cx="251" cy="120" r="10" fill="#fff"/>
+  <rect x="16" y="154" width="268" height="52" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="186" font-size="15" fill="#182431">home-nas</text>
+  <rect x="222" y="168" width="40" height="24" rx="12" fill="#C7CDD6"/>
+  <circle cx="231" cy="180" r="10" fill="#fff"/>
+  <!-- 遮罩 -->
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#182431" opacity="0.32"/>
+  <!-- 半模态面板 -->
+  <path d="M 6 420 Q 6 396 30 396 L 270 396 Q 294 396 294 420 L 294 586 Q 294 614 266 614 L 34 614 Q 6 614 6 586 Z" fill="#FFFFFF"/>
+  <rect x="130" y="408" width="40" height="4" rx="2" fill="#D4D9DF"/>
+  <g>
+    <rect x="16" y="424" width="268" height="52" rx="12" fill="#F4F6F8"/>
+    <g transform="translate(40 450)" stroke="#0A59F7" stroke-width="2" fill="none">
+      <rect x="-8" y="-10" width="16" height="20" rx="2"/>
+      <line x1="-4" y1="-4" x2="4" y2="-4"/><line x1="-4" y1="0" x2="4" y2="0"/><line x1="-4" y1="4" x2="2" y2="4"/>
+    </g>
+    <text x="64" y="455" font-size="15" fill="#182431">导入配置或压缩包</text>
+  </g>
+  <g>
+    <rect x="16" y="484" width="268" height="52" rx="12" fill="#F4F6F8"/>
+    <g transform="translate(40 510)" stroke="#0A59F7" stroke-width="2" fill="none">
+      <rect x="-10" y="-10" width="8" height="8"/><rect x="2" y="-10" width="8" height="8"/>
+      <rect x="-10" y="2" width="8" height="8"/><rect x="2" y="2" width="4" height="4"/><rect x="8" y="8" width="2" height="2"/>
+    </g>
+    <text x="64" y="515" font-size="15" fill="#182431">扫描二维码</text>
+  </g>
+  <g>
+    <rect x="16" y="544" width="268" height="52" rx="12" fill="#F4F6F8"/>
+    <g transform="translate(40 570)" stroke="#0A59F7" stroke-width="2" fill="none">
+      <line x1="-8" y1="8" x2="8" y2="-8" stroke-linecap="round"/>
+      <path d="M -8 8 L -10 10 L -8 10 Z" fill="#0A59F7"/>
+    </g>
+    <text x="64" y="575" font-size="15" fill="#182431">手动创建</text>
+  </g>
+  <!-- 标注 -->
+  <circle cx="222" cy="450" r="10" fill="#0A59F7"/><text x="222" y="454" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <circle cx="222" cy="510" r="10" fill="#0A59F7"/><text x="222" y="514" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>「导入配置或压缩包」</b>：从文件导入 <code>.conf</code> 或 <code>.zip</code>；如果你在文件选择界面里选中的是一张图片，则改为从图片识别二维码。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>「扫描二维码」</b>：打开相机对准二维码。设备没有摄像头或相机不可用时，这一项不显示。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<h2 id="s3"><span class="no">3</span>方式一：导入单个 <code>.conf</code> 文件</h2>
+<ol class="steps">
+  <li>在「+」面板里选择「<b>导入配置或压缩包</b>」。</li>
+  <li>系统文件选择界面打开，选中你的 <code>.conf</code> 配置文件。</li>
+  <li>应用会自动读取这个文件：隧道名称取自<b>文件名</b>（去掉结尾的 <code>.conf</code>，
+    不含任何目录路径）。例如选中 <code>homewg.conf</code>，隧道就叫
+    <code>homewg</code>。</li>
+  <li>配置合格且没有重名，隧道立即创建完成。页面底部提示
+    「<b>导入了 'homewg'</b>」（引号里是你的隧道名称），新隧道出现在列表中。</li>
+</ol>
+<p>如果配置内容有问题、或名称与已有隧道重复，导入不会成功，页面上会写明原因，
+详见<a href="#s8">第 8 节</a>的提示表。</p>
+
+<div class="note">文件名太长或含有不能用作名称的字符时，应用<b>不会直接失败</b>，
+  而是弹出<b>隧道命名对话框</b>，输入框里已经填好清理后的名称，你确认或改一下即可
+  （对话框说明见<a href="#s7">第 7 节</a>）。</div>
+
+<h2 id="s4"><span class="no">4</span>方式二：导入 <code>.zip</code> 压缩包（一次多条）</h2>
+<ol class="steps">
+  <li>在「+」面板里选择「<b>导入配置或压缩包</b>」，然后选中一个 <code>.zip</code> 压缩包。</li>
+  <li>应用会挨个检查压缩包里的文件，<b>只处理扩展名为 <code>.conf</code> 的文件</b>：
+    文件夹（目录）和别类型的文件一律跳过。</li>
+  <li>每个 <code>.conf</code> 都用它的文件名（去掉 <code>.conf</code>）作为隧道名称，
+    各自独立地检查、独立地创建。<b>其中某一条不合格，不影响其他条目继续导入。</b></li>
+  <li>全部处理完后，页面底部给出一条汇总提示（见下表）。压缩包里有多少个
+    <code>.conf</code> 都可以，逐条处理完成。</li>
+</ol>
+
+<table>
+  <tr><th>处理结果</th><th>你会看到的提示</th></tr>
+  <tr><td>成功 1 条，且没有失败</td><td>「导入了 'homewg'」（引号里是该隧道的名称）</td></tr>
+  <tr><td>多条全部成功</td><td>「导入了 5 个隧道」</td></tr>
+  <tr><td>部分成功（有成功、也有失败）</td><td>「导入了 5 项中的 3 项」</td></tr>
+  <tr><td>全部失败</td><td>「无法导入隧道：&lt;原因&gt;」，原因取自<b>最后一条</b>失败条目的失败理由</td></tr>
+</table>
+
+<div class="tip">只要有一项没导入成功，提示里总会告诉你失败原因——不会只报个数字就结束。
+  已成功创建的隧道会保留在列表中；重新导入时，名称重复的条目会被判为失败并单独提示。</div>
+
+<p>压缩包里如果某个 <code>.conf</code> 派生出的名称不合法，这一条会失败并提示
+  「<b>无法导入隧道：名称无效</b>」，计入失败条数；为避免一条条弹窗打断你，
+  批量导入时不会弹出命名对话框。</p>
+
+<h2 id="s5"><span class="no">5</span>方式三：用相机扫描二维码</h2>
+<ol class="steps">
+  <li>在「+」面板里选择「<b>扫描二维码</b>」，进入扫码界面。</li>
+  <li>把手机摄像头对准包含 wg-quick 配置文本的二维码，<b>对准即识别</b>，
+    不需要按任何按钮。</li>
+  <li>识别出二维码后，应用先检查里面的配置内容是否合格：
+    <ul>
+      <li>不合格：提示「无法导入隧道：&lt;解析错误&gt;」，不会继续，也不会弹命名对话框；</li>
+      <li>合格：弹出隧道命名对话框，确认名称后创建隧道（见<a href="#s7">第 7 节</a>）。</li>
+    </ul>
+  </li>
+</ol>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="扫码界面示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#10141A"/>
+  <!-- 状态栏（浅色） -->
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#FFFFFF">9:41</text>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#FFFFFF"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#FFFFFF"/>
+  <!-- 返回 -->
+  <g transform="translate(30 66)" stroke="#FFFFFF" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 6 -8 L -4 0 L 6 8"/>
+  </g>
+  <text x="150" y="70" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">扫描二维码</text>
+  <!-- 取景框 -->
+  <rect x="48" y="150" width="204" height="204" rx="18" fill="#26303C"/>
+  <g stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round">
+    <path d="M 48 186 L 48 168 Q 48 150 66 150 L 84 150"/>
+    <path d="M 216 150 L 234 150 Q 252 150 252 168 L 252 186"/>
+    <path d="M 252 318 L 252 336 Q 252 354 234 354 L 216 354"/>
+    <path d="M 84 354 L 66 354 Q 48 354 48 336 L 48 318"/>
+  </g>
+  <!-- 二维码示意 -->
+  <g fill="#FFFFFF" opacity="0.92">
+    <rect x="112" y="214" width="76" height="76" rx="6"/>
+  </g>
+  <g fill="#10141A">
+    <rect x="122" y="224" width="18" height="18"/><rect x="160" y="224" width="18" height="18"/>
+    <rect x="122" y="262" width="18" height="18"/>
+    <rect x="150" y="252" width="8" height="8"/><rect x="164" y="256" width="8" height="8"/>
+    <rect x="172" y="270" width="8" height="8"/><rect x="150" y="276" width="8" height="8"/>
+  </g>
+  <!-- 扫描线 -->
+  <rect x="56" y="250" width="188" height="2" fill="#0A59F7"/>
+  <!-- 底部提示语 -->
+  <rect x="6" y="480" width="288" height="134" fill="#182431" opacity="0.55"/>
+  <text x="46" y="516" font-size="12.5" fill="#FFFFFF">提示：使用命令</text>
+  <text x="44" y="540" font-size="12" fill="#FFFFFF" font-family="Menlo, Consolas, monospace">qrencode -t ansiutf8 &lt; tunnel.conf</text>
+  <text x="46" y="564" font-size="12.5" fill="#FFFFFF">生成二维码</text>
+  <!-- 标注 -->
+  <circle cx="30" cy="150" r="10" fill="#0A59F7"/><text x="30" y="154" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <circle cx="30" cy="516" r="10" fill="#0A59F7"/><text x="30" y="520" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <circle cx="14" cy="66" r="10" fill="#0A59F7"/><text x="14" y="70" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>取景框</b>：把二维码放进框内即可，识别是自动的，对准即识别。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>生成二维码的提示语</b>：界面上的「提示：使用命令 <code>qrencode -t ansiutf8 &lt; tunnel.conf</code> 生成二维码」是在告诉你怎么把配置文件变成二维码，不是这一步需要你执行的操作。</span></div>
+    <div class="li"><span class="dot">3</span><span><b>返回</b>：退出扫码界面，回到列表页，不做任何导入。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<div class="note">扫码界面固定为竖屏。设备<b>没有摄像头、或相机不可用</b>时，
+  「+」面板里不会出现「扫描二维码」这一项——这种情况下可以改用
+  「导入配置或压缩包」从图片里识别二维码（见<a href="#s6">第 6 节</a>）。</div>
+
+<h2 id="s6"><span class="no">6</span>方式四：从图片识别二维码</h2>
+<p>二维码已经是一张图片（例如对方发来的截图、相册里的图片）时，用这个方式：</p>
+<ol class="steps">
+  <li>在「+」面板里选择「<b>导入配置或压缩包</b>」。</li>
+  <li>在弹出的系统文件选择界面中，选中那张<b>图片</b>。只要选中的是图片，
+    应用就会自动尝试识别其中的二维码，不需要额外操作。</li>
+  <li>识别出二维码且内容合格：弹出隧道命名对话框，确认名称后创建隧道
+    （见<a href="#s7">第 7 节</a>）。识别失败或内容不合格，则按下面的提示报错。</li>
+</ol>
+
+<table>
+  <tr><th>情况</th><th>你会看到的提示</th></tr>
+  <tr><td>图片里没有二维码</td><td>「无法导入隧道：图片中未发现二维码」</td></tr>
+  <tr><td>有二维码，但里面的配置内容不合格</td><td>「无法导入隧道：二维码校验失败」</td></tr>
+  <tr><td>图片本身打不开（文件损坏、格式不支持等）</td><td>「无法导入隧道：&lt;解码错误原因&gt;」</td></tr>
+</table>
+
+<h3>应用怎么判断你选的是什么</h3>
+<p>选择文件后，应用按下面的顺序判断，你按材料选文件即可：</p>
+<table>
+  <tr><th>你选中的是</th><th>应用会怎么做</th></tr>
+  <tr><td>一张图片</td><td>按<b>从图片识别二维码</b>处理（优先级最高）</td></tr>
+  <tr><td>扩展名为 <code>.conf</code> 的文件</td><td>按单个配置文件导入</td></tr>
+  <tr><td>扩展名为 <code>.zip</code> 的文件</td><td>按压缩包批量导入</td></tr>
+  <tr><td>其他任何文件</td><td>提示「仅支持 .conf、.zip 或图片文件」，不导入</td></tr>
+</table>
+
+<h2 id="s7"><span class="no">7</span>隧道命名对话框</h2>
+<p>扫二维码和从图片识别二维码成功后，都会先弹出这个对话框，让你确认隧道叫什么名字；
+导入单个文件时如果文件名派生出的名称不合法，也会弹出它（输入框预填清理后的名称）。</p>
+<ul>
+  <li><b>标题</b>：「从二维码导入隧道」。</li>
+  <li><b>名称输入框</b>：一个，按下面的名称规则填写。</li>
+  <li><b>两个按钮</b>：「创建隧道」「取消」。</li>
+  <li><b>名称不合法或与已有隧道重名</b>：输入框下方直接给出红色的行内错误
+    （「名称无效」或「名称 'homewg' 已存在」），<b>对话框不会关闭</b>，
+    改好之后可以再点「创建隧道」重试。</li>
+  <li><b>创建成功</b>：对话框关闭，新隧道出现在列表中。</li>
+</ul>
+
+<div class="note"><b>隧道名称规则</b>：只允许 ASCII 字母、数字，以及
+  <code>_</code> <code>=</code> <code>+</code> <code>.</code> <code>-</code>
+  这五个符号；长度 1–15 个字符；重名判定<b>区分大小写</b>——<code>Home</code> 和
+  <code>home</code> 算两条不同的隧道。</div>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="隧道命名对话框示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+  <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+  <!-- 遮罩 -->
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#182431" opacity="0.32"/>
+  <!-- 对话框 -->
+  <rect x="30" y="196" width="240" height="228" rx="20" fill="#FFFFFF"/>
+  <text x="150" y="234" font-size="16" font-weight="700" fill="#182431" text-anchor="middle">从二维码导入隧道</text>
+  <!-- 输入框 -->
+  <rect x="50" y="260" width="200" height="44" rx="10" fill="#F1F3F5" stroke="#E84026" stroke-width="1.5"/>
+  <text x="64" y="288" font-size="15" fill="#182431">homewg</text>
+  <line x1="190" y1="274" x2="190" y2="290" stroke="#0A59F7" stroke-width="2"/>
+  <!-- 行内错误 -->
+  <text x="52" y="324" font-size="12.5" fill="#E84026">名称 'homewg' 已存在</text>
+  <!-- 按钮 -->
+  <line x1="30" y1="360" x2="270" y2="360" stroke="#E4E7EB"/>
+  <text x="92" y="394" font-size="15" fill="#5A6572" text-anchor="middle">取消</text>
+  <line x1="150" y1="360" x2="150" y2="424" stroke="#E4E7EB"/>
+  <text x="210" y="394" font-size="15" font-weight="600" fill="#0A59F7" text-anchor="middle">创建隧道</text>
+  <!-- 标注 -->
+  <circle cx="274" cy="228" r="10" fill="#0A59F7"/><text x="274" y="232" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <circle cx="26" cy="282" r="10" fill="#0A59F7"/><text x="26" y="286" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <circle cx="26" cy="320" r="10" fill="#0A59F7"/><text x="26" y="324" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+  <circle cx="274" cy="390" r="10" fill="#0A59F7"/><text x="274" y="394" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>标题</b>：「从二维码导入隧道」。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>名称输入框</b>：按隧道名称规则填写；从文件名导入时这里已经预填清理后的名称。</span></div>
+    <div class="li"><span class="dot">3</span><span><b>行内错误</b>：名称非法或重名时显示在这里，对话框保持打开，改完可以重试。</span></div>
+    <div class="li"><span class="dot">4</span><span><b>按钮</b>：「创建隧道」创建并把新隧道加进列表；「取消」放弃这次导入。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<h2 id="s8"><span class="no">8</span>结果提示与常见问题</h2>
+<p>导入的结果都会在页面底部用一条提示告诉你，提示文案里的单引号内是隧道名称。
+下面是最常遇到的几种：</p>
+
+<figure class="shot shot-wide">
+<svg viewBox="0 0 560 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="导入结果提示样式示意图">
+  <!-- 1 单条成功 -->
+  <text x="0" y="20" font-size="13" fill="#5A6572">单个文件导入成功</text>
+  <rect x="0" y="30" width="330" height="42" rx="12" fill="#26303C"/>
+  <text x="24" y="57" font-size="15" fill="#FFFFFF">导入了 'homewg'</text>
+  <!-- 2 多条全部成功 -->
+  <text x="0" y="106" font-size="13" fill="#5A6572">压缩包多条全部成功</text>
+  <rect x="0" y="116" width="330" height="42" rx="12" fill="#26303C"/>
+  <text x="24" y="143" font-size="15" fill="#FFFFFF">导入了 5 个隧道</text>
+  <!-- 3 部分成功 -->
+  <text x="0" y="192" font-size="13" fill="#5A6572">压缩包部分成功（有成功也有失败）</text>
+  <rect x="0" y="202" width="330" height="42" rx="12" fill="#26303C"/>
+  <text x="24" y="229" font-size="15" fill="#FFFFFF">导入了 5 项中的 3 项</text>
+  <!-- 4 失败 -->
+  <text x="0" y="278" font-size="13" fill="#5A6572">失败（全部失败时也显示具体原因）</text>
+  <rect x="0" y="288" width="420" height="42" rx="12" fill="#D93025"/>
+  <text x="24" y="315" font-size="15" font-weight="600" fill="#FFFFFF">无法导入隧道：未找到配置</text>
+  <!-- 说明 -->
+  <g font-size="13" fill="#97A0AB">
+    <text x="352" y="57">引号里是隧道名称</text>
+    <text x="352" y="143">全部成功时显示个数</text>
+    <text x="352" y="229">成功 3 项、失败 2 项</text>
+    <text x="430" y="315">红色提示附失败原因</text>
+  </g>
+</svg>
+<figcaption>导入结果提示长这样：底部一条圆角提示条，成功/信息是深色底白字；失败用红色并附上原因。</figcaption>
+</figure>
+
+<table>
+  <tr><th>你遇到的场景</th><th>表现</th></tr>
+  <tr><td>所选文件既不是 <code>.conf</code>、<code>.zip</code>，也不是图片</td>
+      <td>提示「仅支持 .conf、.zip 或图片文件」，不做任何导入</td></tr>
+  <tr><td><code>.conf</code> 文件内容无法解析</td>
+      <td>提示「无法导入隧道：&lt;解析错误&gt;」。解析错误会说明<b>位置</b>和<b>原因</b>，
+        例如「在 本地 的 私钥 字段发生了 密钥长度错误 的问题」</td></tr>
+  <tr><td>压缩包里没有任何 <code>.conf</code></td>
+      <td>提示「无法导入隧道：未找到配置」</td></tr>
+  <tr><td>隧道名称与已有隧道重复</td>
+      <td>该条导入失败（批量时计入失败条数），提示「无法导入隧道：名称 'homewg' 已存在」</td></tr>
+  <tr><td>单个文件的文件名派生出的名称不合法</td>
+      <td>不失败，弹出命名对话框，预填清理后的名称让你确认或修正</td></tr>
+  <tr><td>压缩包内某个条目的名称不合法</td>
+      <td>该条失败，提示「无法导入隧道：名称无效」，其余条目照常导入</td></tr>
+  <tr><td>二维码里的内容不是合法配置</td>
+      <td>提示「无法导入隧道：&lt;解析错误&gt;」，不会弹出命名对话框</td></tr>
+  <tr><td>你在文件选择界面或扫码界面按了返回、取消了操作</td>
+      <td>没有任何提示，直接回到列表页，什么都没发生</td></tr>
+</table>
+
+<h3>常见问题</h3>
+<table>
+  <tr><th>现象</th><th>原因与处理</th></tr>
+  <tr><td>提示「仅支持 .conf、.zip 或图片文件」</td>
+      <td>你选的文件类型不在支持范围内。确认文件扩展名是 <code>.conf</code> 或
+        <code>.zip</code>；如果是二维码截图，请确认选的是图片本身。</td></tr>
+  <tr><td>提示「无法导入隧道：未找到配置」</td>
+      <td>这个压缩包里一个 <code>.conf</code> 都没有。检查压缩包是不是打错了，
+        或者里面只有文件夹/其他文件——把配置文件直接放进压缩包再试。</td></tr>
+  <tr><td>提示「无法导入隧道：名称 'homewg' 已存在」</td>
+      <td>列表里已经有一条同名隧道。先删掉或改名，或者给这次导入换个名字
+        （单个文件导入时可在命名对话框里改）。</td></tr>
+  <tr><td>导入多条时只提示「导入了 5 项中的 3 项」，不知道哪两条失败</td>
+      <td>提示里给出的失败原因取自最后一条失败的条目；逐条核对压缩包里的
+        <code>.conf</code> 内容与名称，通常能定位到问题文件。</td></tr>
+  <tr><td>提示「无法导入隧道：在 …… 未知属性 ……」之类的错误</td>
+      <td>配置文件里包含了应用不认识的配置项。常见原因：这份 <code>.conf</code> 来自桌面版的
+        wg-quick，里面带了 <code>Table</code>、<code>PreUp</code>、<code>PostUp</code>、
+        <code>PreDown</code>、<code>PostDown</code>、<code>SaveConfig</code>、
+        <code>FwMark</code> 这类桌面专用行。把这些行删掉再导入即可。</td></tr>
+  <tr><td>提示里有「应用过滤的两种模式不能同时设置」</td>
+      <td>配置里同时写了「生效」与「不生效」两种应用过滤名单（<code>IncludedApplications</code>
+        和 <code>ExcludedApplications</code>），二者只能保留一种。删掉其中一行再导入。</td></tr>
+  <tr><td>取消操作后什么提示都没有</td>
+      <td>这是正常的：主动取消不产生任何提示，也不会有半成品隧道留下。</td></tr>
+  <tr><td>找不到「扫描二维码」</td>
+      <td>设备没有摄像头或相机不可用时该入口不显示，改用「导入配置或压缩包」
+        从图片识别二维码即可。</td></tr>
+</table>
+
+<h2 id="s9"><span class="no">9</span>导入之后：注意安全</h2>
+<p>导入进来的配置文件（以及二维码里的内容）包含<b>私钥</b>，它的作用等同于账号密码。
+请把 <code>.conf</code> 文件、<code>.zip</code> 压缩包和包含配置的二维码图片都当成敏感信息：
+不要随手转发到聊天群、不要上传到网盘或公开仓库，发送前先确认对方是不是应该拿到它。
+导出的备份同样要妥善保管。</p>
+<div class="warn">配置导入后只保存在你自己的手机上。想了解私钥是怎么被保护的、
+  哪些操作需要先验证身份，见<a href="privacy-security.html">隐私与安全</a>。</div>
+
+<nav class="foot-nav">
+  <span class="prev"><a href="tunnel-list.html">← 上一页：隧道列表（首页）</a></span>
+  <span class="next"><a href="tunnel-editor.html">下一页：隧道编辑器 →</a></span>
+</nav>
+
+</div>
+</body>
+</html>

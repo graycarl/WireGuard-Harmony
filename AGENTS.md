@@ -35,7 +35,7 @@ spec / handbook 是验收基准，代码行为与 spec 冲突时以 spec 为准�
 | 定位 | **WireGuard VPN 客户端的 HarmonyOS 原生重写**：ArkTS + ArkUI 声明式 UI + `VpnExtensionAbility`，功能对齐上游 WireGuard-Android |
 | 数据源 | 本地用户配置（wg-quick `.conf` 文本 / 二维码 / 手动编辑），**无后端服务**；配置与私钥仅存本机 |
 | 上游参考实现 | `~/LibSource/WireGuard-Android`（tag `1.0.20260315-1-ge7b3a3c1`） |
-| 设计文档 | **[specs/*.md](specs/)**（功能规格，已编写）+ **[handbook/*.html](handbook/)**（用户说明书，待编写）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策，待编写）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
+| 设计文档 | **[specs/*.md](specs/)**（功能规格，已编写）+ **[handbook/*.html](handbook/)**（用户说明书，已编写）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策，待编写）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
 | bundleName | `me.graycarl.wireguard` |
 | 平台 | HarmonyOS（纯鸿蒙，`runtimeOS: HarmonyOS`，非兼容模式） |
 | SDK | 6.1.1(24)，target/compatible 均为 24 |

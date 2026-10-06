@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WireGuard 用户手册（HarmonyOS 版）</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <h1>WireGuard 用户手册</h1>
+  <p>HarmonyOS 版 · 面向最终用户的完整操作说明（界面为示意图，实际以应用为准）</p>
+</div>
+
+<p>本手册按功能分章，建议第一次使用按顺序阅读；
+也可以直接从下表跳到你关心的功能。每章都配有界面示意图与分步操作，并附排错说明。</p>
+
+<div class="note">适用范围：本手册面向手机版应用，页面以竖屏为主。
+应用升级不会删除已保存的隧道。</div>
+
+<h2>目录</h2>
+<div class="toc">
+  <a href="tunnel-list.html">
+    <b>1. 隧道列表（首页）</b>
+    <span>查看所有隧道、一键开关、批量删除、添加入口</span>
+  </a>
+  <a href="tunnel-import.html">
+    <b>2. 导入隧道</b>
+    <span>.conf 文件 / .zip 批量导入 / 扫二维码 / 从图片识别</span>
+  </a>
+  <a href="tunnel-editor.html">
+    <b>3. 隧道编辑器</b>
+    <span>手动创建与修改配置、重命名、应用过滤、排除局域网</span>
+  </a>
+  <a href="tunnel-detail.html">
+    <b>4. 隧道详情</b>
+    <span>查看完整配置、实时流量与握手时间、一键复制</span>
+  </a>
+  <a href="tunnel-connection.html">
+    <b>5. 连接与断开</b>
+    <span>VPN 授权、切换隧道、状态同步、连接失败排查</span>
+  </a>
+  <a href="settings.html">
+    <b>6. 设置</b>
+    <span>版本信息、导出全部配置、查看/导出/分享日志、暗色主题</span>
+  </a>
+  <a href="privacy-security.html">
+    <b>7. 隐私与安全</b>
+    <span>私钥保护、锁屏认证、防截屏、数据不出本机</span>
+  </a>
+</div>
+
+<h2>三分钟上手</h2>
+<p>先统一一个说法：<b>一条「隧道」＝一份连接配置</b>（本机密钥、对端地址等），
+首页列表里的每一行就是一条隧道。</p>
+<ol class="steps">
+  <li>拿到服务端配置：一个 <code>.conf</code> 文件，或一个配置二维码。</li>
+  <li>打开应用，点右下角「<b>+</b>」→ 选择「导入配置或压缩包」或「扫描二维码」。</li>
+  <li>回到首页，点击隧道右侧的开关；首次连接时允许系统的 VPN 授权（之后是否每次都弹出以系统为准）。</li>
+  <li>开关变为已连接状态、状态栏出现 VPN 标志，即已连接。</li>
+</ol>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="首页示意">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <text x="210" y="26" font-size="9" font-weight="700" fill="#182431" text-anchor="end">VPN</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+  <g transform="translate(258 52)" stroke="#5A6572" stroke-width="2" fill="none">
+    <circle cx="0" cy="0" r="8"/>
+    <circle cx="0" cy="0" r="2.6" fill="#5A6572" stroke="none"/>
+    <g stroke-linecap="round">
+      <line x1="0" y1="-11" x2="0" y2="-13.5"/><line x1="0" y1="11" x2="0" y2="13.5"/>
+      <line x1="-11" y1="0" x2="-13.5" y2="0"/><line x1="11" y1="0" x2="13.5" y2="0"/>
+      <line x1="-7.8" y1="-7.8" x2="-9.5" y2="-9.5"/><line x1="7.8" y1="7.8" x2="9.5" y2="9.5"/>
+      <line x1="7.8" y1="-7.8" x2="9.5" y2="-9.5"/><line x1="-7.8" y1="7.8" x2="-9.5" y2="9.5"/>
+    </g>
+  </g>
+  <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+  <rect x="222" y="108" width="40" height="24" rx="12" fill="#0A59F7"/>
+  <circle cx="251" cy="120" r="10" fill="#fff"/>
+  <rect x="16" y="154" width="268" height="52" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="186" font-size="15" fill="#182431">home-nas</text>
+  <rect x="222" y="168" width="40" height="24" rx="12" fill="#C7CDD6"/>
+  <circle cx="231" cy="180" r="10" fill="#fff"/>
+  <circle cx="250" cy="548" r="27" fill="#0A59F7"/>
+  <g stroke="#fff" stroke-width="3" stroke-linecap="round">
+    <line x1="250" y1="537" x2="250" y2="559"/><line x1="239" y1="548" x2="261" y2="548"/>
+  </g>
+</svg>
+<figcaption>首页：隧道列表 + 右侧连接开关 + 右下角「+」添加按钮（示意）。</figcaption>
+</figure>
+
+<div class="tip">配置里包含私钥，等同于账号密码：不要把 <code>.conf</code> 文件或二维码
+随手发给他人，导出备份后也请妥善保管。详见<a href="privacy-security.html">隐私与安全</a>。</div>
+
+</div>
+</body>
+</html>

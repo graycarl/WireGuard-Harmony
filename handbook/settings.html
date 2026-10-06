@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设置 · WireGuard 用户手册</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="page-head">
+  <div class="crumb"><a href="index.html">手册首页</a> / 设置</div>
+  <h1>设置</h1>
+  <p class="lede">设置页放的都是「与某一条隧道无关」的应用级功能：查看版本、把全部隧道
+    一次导出备份、查看与导出运行日志、切换暗色主题。这一章逐项说明每一项怎么用、
+    会看到什么提示。</p>
+</header>
+
+<h2><span class="no">1</span>入口与界面一览</h2>
+<p>打开应用，在隧道列表页（首页）点右上角的「<b>设置</b>」图标按钮，即可进入设置页。
+设置页一共只有四行，从上到下依次是：版本信息、导出隧道配置、查看应用日志、暗色主题。</p>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="设置页界面示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <!-- 状态栏 -->
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <!-- 标题栏 -->
+  <path d="M 35 50 L 26 58.5 L 35 67" fill="none" stroke="#182431" stroke-width="2.2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="52" y="66" font-size="20" font-weight="700" fill="#182431">设置</text>
+  <!-- 版本信息 -->
+  <rect x="16" y="96" width="268" height="64" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="122" font-size="15" fill="#182431">版本信息</text>
+  <text x="32" y="143" font-size="9.5" fill="#97A0AB">WireGuard v1.x.x，userspace backend 1.0.x</text>
+  <!-- 导出隧道配置 -->
+  <rect x="16" y="170" width="268" height="52" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="202" font-size="15" fill="#182431">导出隧道配置</text>
+  <path d="M 265 186 L 271 192 L 265 198" fill="none" stroke="#B9C0CA" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 查看应用日志 -->
+  <rect x="16" y="230" width="268" height="52" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="262" font-size="15" fill="#182431">查看应用日志</text>
+  <path d="M 265 246 L 271 252 L 265 258" fill="none" stroke="#B9C0CA" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 暗色主题 -->
+  <rect x="16" y="290" width="268" height="52" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="322" font-size="15" fill="#182431">暗色主题</text>
+  <rect x="222" y="304" width="40" height="24" rx="12" fill="#C7CDD6"/>
+  <circle cx="231" cy="316" r="10" fill="#fff"/>
+  <!-- 标注 -->
+  <circle cx="14" cy="122" r="9" fill="#0A59F7"/><text x="14" y="126" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <circle cx="14" cy="196" r="9" fill="#0A59F7"/><text x="14" y="200" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <circle cx="14" cy="256" r="9" fill="#0A59F7"/><text x="14" y="260" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+  <circle cx="14" cy="316" r="9" fill="#0A59F7"/><text x="14" y="320" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>版本信息</b>：应用与底层实现的名称和版本，仅供查看（这一行点了没有反应）。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>导出隧道配置</b>：把全部隧道打包成一个压缩包保存到本机，导出前需要先通过认证。</span></div>
+    <div class="li"><span class="dot">3</span><span><b>查看应用日志</b>：进入日志页，可以导出或分享日志文件。</span></div>
+    <div class="li"><span class="dot">4</span><span><b>暗色主题开关</b>：默认关闭＝跟随系统；打开＝始终使用暗色主题。拨一下立即生效。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<div class="note">设置页里没有「保存」或「确定」按钮：每一项点下去要么立即生效，
+  要么直接打开对应的页面或系统界面。</div>
+
+<h2><span class="no">2</span>版本信息</h2>
+<p>「版本信息」这一行显示两样东西：</p>
+<ul>
+  <li><b>应用名称与版本号</b>（示意：<code>WireGuard v1.x.x</code>）；</li>
+  <li><b>底层实现的名称与版本</b>（示意：<code>userspace backend 1.0.x</code>）。</li>
+</ul>
+<div class="note">这一行只是给你看的，<b>点击不会有任何反应</b>：不会打开网页，也不会跳转。
+  其中的名称与版本号以你手机上实际显示的为准。</div>
+
+<h2><span class="no">3</span>导出隧道配置</h2>
+<p>「导出隧道配置」把当前保存的<b>全部隧道</b>一次性导出，适合换手机前的备份，
+  或者把配置交给其他设备使用。</p>
+<ol class="steps">
+  <li>点击「<b>导出隧道配置</b>」。</li>
+  <li><b>如果一条隧道都没有</b>：直接提示「无法导出隧道配置：无隧道」，
+    <b>不会弹出认证</b>。到这一步就结束了，先去添加隧道再回来导出。</li>
+  <li><b>有隧道时</b>：系统先弹出锁屏认证，标题为「导出配置前需要通过认证」。
+    用生物识别或锁屏凭证（PIN／图案／密码）都可以。</li>
+  <li>认证通过后，每一条隧道分别导出为一个 <code>&lt;隧道名&gt;.conf</code> 文件，
+    再一起打包成一个 zip 压缩包。</li>
+  <li>系统弹出保存位置选择，选好位置并确认。</li>
+  <li>结果：
+    <ul>
+      <li>保存成功：底部提示「已保存至 '&lt;文件名&gt;'」；</li>
+      <li>保存失败：提示「无法导出隧道配置：<code>&lt;原因&gt;</code>」，原因由系统给出
+        （例如没有存储空间、没有权限）。</li>
+    </ul>
+  </li>
+</ol>
+
+<figure class="shot shot-wide">
+<svg viewBox="0 0 620 670" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="导出隧道配置：先认证、再保存的成功与提示示意图">
+  <!-- 左：认证 -->
+  <text x="150" y="20" font-size="13" font-weight="700" fill="#5A6572" text-anchor="middle">导出前</text>
+  <text x="150" y="38" font-size="12" fill="#97A0AB" text-anchor="middle">系统弹出锁屏认证</text>
+  <g transform="translate(0 50)">
+    <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+    <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+    <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+    <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+    <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+    <path d="M 35 50 L 26 58.5 L 35 67" fill="none" stroke="#182431" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="52" y="66" font-size="20" font-weight="700" fill="#182431">设置</text>
+    <rect x="16" y="96" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="128" font-size="15" fill="#182431">版本信息</text>
+    <rect x="16" y="156" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="188" font-size="15" fill="#182431">导出隧道配置</text>
+    <path d="M 265 172 L 271 178 L 265 184" fill="none" stroke="#B9C0CA" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="16" y="216" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="248" font-size="15" fill="#182431">查看应用日志</text>
+    <rect x="16" y="276" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="308" font-size="15" fill="#182431">暗色主题</text>
+    <rect x="222" y="290" width="40" height="24" rx="12" fill="#C7CDD6"/>
+    <circle cx="231" cy="302" r="10" fill="#fff"/>
+    <!-- 遮罩 + 认证框 -->
+    <rect x="0" y="0" width="300" height="620" rx="34" fill="#182431" opacity="0.32"/>
+    <rect x="28" y="196" width="244" height="196" rx="18" fill="#FFFFFF"/>
+    <g transform="translate(150 244)" stroke="#0A59F7" stroke-width="2" fill="none" stroke-linecap="round">
+      <path d="M -21 -5 A 26 26 0 0 1 21 -5"/>
+      <path d="M -16 2 A 18 18 0 0 1 16 2"/>
+      <path d="M -10 8 A 12 12 0 0 1 10 8"/>
+      <line x1="0" y1="14" x2="0" y2="6"/>
+    </g>
+    <text x="150" y="292" font-size="14" font-weight="700" fill="#182431" text-anchor="middle">导出配置前需要通过认证</text>
+    <text x="150" y="314" font-size="11" fill="#5A6572" text-anchor="middle">使用生物识别或锁屏凭证验证</text>
+    <rect x="105" y="348" width="90" height="32" rx="16" fill="#F4F6F8"/>
+    <text x="150" y="369" font-size="12" fill="#0A59F7" text-anchor="middle">取消</text>
+    <circle cx="14" cy="290" r="9" fill="#0A59F7"/><text x="14" y="294" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+    <circle cx="186" cy="370" r="9" fill="#0A59F7"/><text x="186" y="374" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  </g>
+  <!-- 右：保存成功 -->
+  <text x="470" y="20" font-size="13" font-weight="700" fill="#5A6572" text-anchor="middle">保存完成</text>
+  <text x="470" y="38" font-size="12" fill="#97A0AB" text-anchor="middle">底部提示保存结果</text>
+  <g transform="translate(320 50)">
+    <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+    <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+    <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+    <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+    <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+    <path d="M 35 50 L 26 58.5 L 35 67" fill="none" stroke="#182431" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="52" y="66" font-size="20" font-weight="700" fill="#182431">设置</text>
+    <rect x="16" y="96" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="128" font-size="15" fill="#182431">版本信息</text>
+    <rect x="16" y="156" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="188" font-size="15" fill="#182431">导出隧道配置</text>
+    <path d="M 265 172 L 271 178 L 265 184" fill="none" stroke="#B9C0CA" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="16" y="216" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="248" font-size="15" fill="#182431">查看应用日志</text>
+    <rect x="16" y="276" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="308" font-size="15" fill="#182431">暗色主题</text>
+    <rect x="222" y="290" width="40" height="24" rx="12" fill="#C7CDD6"/>
+    <circle cx="231" cy="302" r="10" fill="#fff"/>
+    <!-- 底部提示 -->
+    <rect x="26" y="516" width="248" height="46" rx="12" fill="#26303C"/>
+    <text x="150" y="544" font-size="11.5" fill="#FFFFFF" text-anchor="middle">已保存至 'wireguard-tunnels.zip'</text>
+    <circle cx="14" cy="539" r="9" fill="#0A59F7"/><text x="14" y="543" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+  </g>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>锁屏认证</b>：有隧道时导出，先弹系统认证（框内文案由系统提供），标题为「导出配置前需要通过认证」。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>取消</b>：取消或认证失败都不会导出任何文件；通过指纹、人脸或锁屏密码任意一种即可继续。</span></div>
+    <div class="li"><span class="dot">3</span><span><b>保存结果</b>：成功时底部提示「已保存至 '&lt;文件名&gt;'」，失败时提示具体原因（图中文件名为示意，以应用实际生成为准）。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<div class="warn">导出的 zip 压缩包里包含<b>每条隧道的完整私钥</b>：拿到这个文件就等于拿到了
+  你的账号密码。<b>只在必要的时候导出，并且妥善保管</b>，不要随手发到聊天工具或云盘。
+  私钥的保护规则见<a href="privacy-security.html">隐私与安全</a>。</div>
+
+<div class="note">认证只做一次：一次导出对应一次认证；认证被取消或失败时不会导出任何文件，
+  页面停留在设置页，你可以再点一次重新导出。导出不会打断正在连接的隧道，导出的内容是你最新已保存的配置。</div>
+
+<h2><span class="no">4</span>查看应用日志</h2>
+<p>「查看应用日志」进入日志页。日志是应用自己记录的运行过程（连接过程、错误信息等），
+  反馈问题时把日志发出来，最有助于定位原因。</p>
+<ul>
+  <li><b>顺序</b>：按时间先后排列，<b>旧的在上面、新的在最下面</b>。</li>
+  <li><b>自动滚动</b>：只要你没有手动往上滑，新产生的日志会自动滚动到底部，
+    让你总是看到最新的内容；当你手动上滑查看历史日志时，自动滚动会暂停，不会把你拉回去。</li>
+  <li><b>导出日志文件</b>：把日志保存为文本文件。成功提示「已保存至 '&lt;文件名&gt;'」，
+    失败提示「无法导出日志：<code>&lt;原因&gt;</code>」。</li>
+  <li><b>分享日志文件</b>：通过系统分享，把日志文件发给其他应用（例如发给帮你排查问题的人）。</li>
+  <li><b>内容范围</b>：日志<b>不包含私钥与预共享密钥</b>，可以放心交给他人查看。</li>
+  <li><b>日志为空</b>：页面显示空白列表，不会报错——通常只是还没有产生日志。</li>
+</ul>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="应用日志页示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <!-- 状态栏 -->
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <!-- 标题栏 -->
+  <path d="M 35 50 L 26 58.5 L 35 67" fill="none" stroke="#182431" stroke-width="2.2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="52" y="66" font-size="20" font-weight="700" fill="#182431">应用日志</text>
+  <!-- 两个入口 -->
+  <rect x="16" y="90" width="130" height="38" rx="10" fill="#0A59F7"/>
+  <text x="81" y="114" font-size="11.5" font-weight="600" fill="#fff" text-anchor="middle">导出日志文件</text>
+  <rect x="154" y="90" width="130" height="38" rx="10" fill="#FFFFFF" stroke="#0A59F7"/>
+  <text x="219" y="114" font-size="11.5" font-weight="600" fill="#0A59F7" text-anchor="middle">分享日志文件</text>
+  <!-- 日志列表 -->
+  <rect x="16" y="142" width="268" height="440" rx="12" fill="#FFFFFF"/>
+  <g font-family="monospace" font-size="9.5" fill="#5A6572">
+    <text x="28" y="180">09:41:02  应用启动</text>
+    <text x="28" y="204">09:41:02  已加载 3 条隧道</text>
+    <text x="28" y="228">09:41:03  主题：跟随系统</text>
+    <text x="28" y="252">09:41:05  连接「company-vpn」</text>
+    <text x="28" y="276">09:41:05  正在解析对端地址…</text>
+    <text x="28" y="300">09:41:05  正在建立握手</text>
+    <text x="28" y="324">09:41:06  握手完成</text>
+    <text x="28" y="348">09:41:06  隧道已建立</text>
+    <text x="28" y="372">09:41:07  已应用 2 条路由</text>
+    <text x="28" y="396">09:41:18  收到 1.2 MiB，发出 340 KiB</text>
+    <text x="28" y="420">09:41:31  收到 2.4 MiB，发出 712 KiB</text>
+    <text x="28" y="444">09:41:44  收到 3.1 MiB，发出 1.0 MiB</text>
+    <text x="28" y="468">09:41:57  收到 3.9 MiB，发出 1.3 MiB</text>
+    <text x="28" y="492">09:42:10  收到 4.6 MiB，发出 1.6 MiB</text>
+    <text x="28" y="516">09:42:23  收到 5.2 MiB，发出 1.9 MiB</text>
+    <text x="28" y="540">09:42:36  收到 6.0 MiB，发出 2.2 MiB</text>
+  </g>
+  <text x="150" y="570" font-size="9.5" fill="#97A0AB" text-anchor="middle">↓ 新日志已自动滚动到底部</text>
+  <!-- 标注 -->
+  <circle cx="14" cy="109" r="9" fill="#0A59F7"/><text x="14" y="113" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <circle cx="14" cy="300" r="9" fill="#0A59F7"/><text x="14" y="304" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <circle cx="222" cy="570" r="9" fill="#0A59F7"/><text x="222" y="574" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>两个入口</b>：「导出日志文件」保存为文本文件；「分享日志文件」通过系统分享发给其他应用。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>日志列表</b>：旧的在上面、新的在最下面，按时间顺序排列（图中日志内容为示意，以应用实际记录为准）。</span></div>
+    <div class="li"><span class="dot">3</span><span><b>自动滚动</b>：你没有手动上滑时，新日志会自动滚到底部。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<div class="note">日志只记录应用自身运行过程中的信息，<b>不会写入私钥与预共享密钥</b>；
+  这一点与<a href="privacy-security.html">隐私与安全</a>中的承诺一致。</div>
+
+<h2><span class="no">5</span>暗色主题</h2>
+<p>「暗色主题」是一个开关，控制整个应用使用浅色还是深色外观：</p>
+<ul>
+  <li><b>打开</b>：使用暗色（黑夜）主题。</li>
+  <li><b>关闭</b>：跟随系统（<b>默认</b>）。系统是深色模式时应用显示暗色，系统是浅色模式时显示浅色。</li>
+  <li><b>立即生效</b>：拨动开关后，当前页面马上换成对应外观，不需要重启应用。</li>
+  <li><b>重启保持</b>：下次打开应用，仍然保持你上次的选择。</li>
+  <li><b>生效范围</b>：<b>全部页面与对话框</b>都适用，包括隧道列表、隧道详情、编辑器、日志页，
+    以及底部弹出的面板。</li>
+</ul>
+<div class="tip">如果你希望「白天浅色、晚上自动变暗」，把开关保持在默认的关闭状态，
+  再让系统的深色模式按时间或日出日落自动切换即可。</div>
+
+<h2><span class="no">6</span>这里没有的设置项</h2>
+<p>下面这些设置项在其他平台的 WireGuard 客户端里可能存在，本应用<b>不提供</b>，
+  不用在设置页里找：</p>
+<table>
+  <tr><th>设置项</th><th>说明</th></tr>
+  <tr><td>启动自动恢复隧道</td>
+      <td>本应用不会在开机或重新打开后自动连接，每次都需要你手动拨开开关。</td></tr>
+  <tr><td>同时开启多条隧道</td>
+      <td>系统同时只允许一条 VPN 连接，任意时刻最多只有一条隧道处于连接状态。</td></tr>
+  <tr><td>快速设置磁贴</td>
+      <td>本应用不提供系统下拉快捷开关。</td></tr>
+  <tr><td>安装命令行工具</td>
+      <td>本应用不需要、也不提供命令行工具，全部操作都在应用界面里完成
+        （扫码页提示里的 <code>qrencode</code> 命令是让你在电脑上生成二维码用的，不是应用内置功能）。</td></tr>
+  <tr><td>启用内核模块</td>
+      <td>本应用不提供该开关，连接方式由应用自行管理。</td></tr>
+  <tr><td>外部应用远程控制隧道</td>
+      <td>本应用不支持被其他应用远程唤起或控制连接。</td></tr>
+  <tr><td>应用内更新器</td>
+      <td>本应用不内置更新功能，请通过应用市场获取新版本；应用升级不会删除已保存的隧道。</td></tr>
+  <tr><td>连接后的常驻通知</td>
+      <td>本应用不提供额外的常驻通知；是否已连接以系统状态栏的 VPN 标志为准。</td></tr>
+  <tr><td>首次启动引导</td>
+      <td>本应用没有引导页，打开即用。</td></tr>
+  <tr><td>捐赠入口</td>
+      <td>本应用不提供捐赠入口。</td></tr>
+</table>
+
+<h2><span class="no">7</span>常见问题</h2>
+<table>
+  <tr><th>现象</th><th>原因与处理</th></tr>
+  <tr><td>点了「导出隧道配置」却什么都没发生</td>
+      <td>多半是锁屏认证被取消了。<b>取消认证不会有任何提示</b>，页面停在设置页，
+        也不会导出文件。想导出就再点一次。</td></tr>
+  <tr><td>提示「认证失败」</td>
+      <td>这一次识别没有通过，配置保持原样、没有导出。再点一次重试即可。</td></tr>
+  <tr><td>提示「认证失败：<code>&lt;原因&gt;</code>」</td>
+      <td>认证过程本身出错（例如识别硬件被其他应用占用），引号后是系统给出的原因。
+        稍后重试；反复出现时先关闭可能占用识别硬件的应用。</td></tr>
+  <tr><td>提示「无法导出隧道配置：无隧道」</td>
+      <td>当前一条隧道都没有。先到首页添加隧道，再回来导出；这种情况不会弹出认证。</td></tr>
+  <tr><td>提示「无法导出隧道配置：<code>&lt;原因&gt;</code>」</td>
+      <td>保存没有完成，常见原因是存储空间不足或没有保存到该位置的权限。
+        按系统给出的原因处理（例如清理空间、换一个可写的位置）后重试。</td></tr>
+  <tr><td>提示「无法导出日志：<code>&lt;原因&gt;</code>」</td>
+      <td>日志文件和配置文件的导出一样，需要能写入你选择的位置。按原因处理后重试，
+        或改用「分享日志文件」把日志发给其他应用。</td></tr>
+  <tr><td>日志页一片空白</td>
+      <td>这是正常的，说明当前还没有日志或日志为空，不是出错。</td></tr>
+  <tr><td>打开暗色主题开关后，系统其他界面仍是浅色</td>
+      <td>这个开关只作用于本应用。想跟随系统，把开关关掉（默认状态）即可。</td></tr>
+</table>
+
+<nav class="foot-nav">
+  <span class="prev"><a href="tunnel-connection.html">← 上一页：连接与断开</a></span>
+  <span class="next"><a href="privacy-security.html">下一页：隐私与安全 →</a></span>
+</nav>
+
+</div>
+</body>
+</html>

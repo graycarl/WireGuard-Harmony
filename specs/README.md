@@ -13,7 +13,7 @@
 | 文档 | 状态 |
 |---|---|
 | `specs/*.md` | ✅ 已编写（本目录） |
-| `handbook/*.html` | ⬜ 待编写（与 spec 配套的用户说明书） |
+| `handbook/*.html` | ✅ 已编写（与 spec 配套的用户说明书） |
 | `docs/decisions/*.md` | ⬜ 待编写（技术决策，承载被 spec 排除的实现内容） |
 
 > 除 [config-format.md](config-format.md)（数据契约，无对应操作手册页）外，

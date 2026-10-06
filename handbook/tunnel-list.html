@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>隧道列表（首页） · WireGuard 用户手册</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="page-head">
+  <div class="crumb"><a href="index.html">手册首页</a> / 隧道列表（首页）</div>
+  <h1>隧道列表（首页）</h1>
+  <p class="lede">打开应用后看到的第一个页面。这里集中展示你保存的所有隧道，
+    可以一键连接/断开、进入详情、批量删除，以及添加新隧道。</p>
+</header>
+
+<h2><span class="no">1</span>界面一览</h2>
+<p>页面从上到下分为三部分：顶部标题栏（含设置入口）、中间的隧道列表、右下角的「+」添加按钮。</p>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="隧道列表首页示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <!-- 状态栏 -->
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <text x="210" y="26" font-size="9" font-weight="700" fill="#182431" text-anchor="end">VPN</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <!-- 标题栏 -->
+  <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+  <g transform="translate(258 52)" stroke="#5A6572" stroke-width="2" fill="none">
+    <circle cx="0" cy="0" r="8"/>
+    <circle cx="0" cy="0" r="2.6" fill="#5A6572" stroke="none"/>
+    <g stroke-linecap="round">
+      <line x1="0" y1="-11" x2="0" y2="-13.5"/><line x1="0" y1="11" x2="0" y2="13.5"/>
+      <line x1="-11" y1="0" x2="-13.5" y2="0"/><line x1="11" y1="0" x2="13.5" y2="0"/>
+      <line x1="-7.8" y1="-7.8" x2="-9.5" y2="-9.5"/><line x1="7.8" y1="7.8" x2="9.5" y2="9.5"/>
+      <line x1="7.8" y1="-7.8" x2="9.5" y2="-9.5"/><line x1="-7.8" y1="7.8" x2="-9.5" y2="9.5"/>
+    </g>
+  </g>
+  <!-- 标注1：设置入口 -->
+  <circle cx="278" cy="42" r="9" fill="#0A59F7"/><text x="278" y="46" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <!-- 隧道列表 -->
+  <g>
+    <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+    <rect x="222" y="108" width="40" height="24" rx="12" fill="#0A59F7"/>
+    <circle cx="251" cy="120" r="10" fill="#fff"/>
+  </g>
+  <g>
+    <rect x="16" y="154" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="186" font-size="15" fill="#182431">home-nas</text>
+    <rect x="222" y="168" width="40" height="24" rx="12" fill="#C7CDD6"/>
+    <circle cx="231" cy="180" r="10" fill="#fff"/>
+  </g>
+  <g>
+    <rect x="16" y="214" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <text x="32" y="246" font-size="15" fill="#182431">overseas</text>
+    <rect x="222" y="228" width="40" height="24" rx="12" fill="#C7CDD6"/>
+    <circle cx="231" cy="240" r="10" fill="#fff"/>
+  </g>
+  <!-- 标注2：隧道行 / 标注3：开关 -->
+  <circle cx="14" cy="120" r="9" fill="#0A59F7"/><text x="14" y="124" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <circle cx="278" cy="120" r="9" fill="#0A59F7"/><text x="278" y="124" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+  <!-- FAB -->
+  <circle cx="250" cy="548" r="27" fill="#0A59F7"/>
+  <g stroke="#fff" stroke-width="3" stroke-linecap="round">
+    <line x1="250" y1="537" x2="250" y2="559"/><line x1="239" y1="548" x2="261" y2="548"/>
+  </g>
+  <!-- 标注4：添加按钮 -->
+  <circle cx="206" cy="548" r="9" fill="#0A59F7"/><text x="206" y="552" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+</svg>
+<figcaption>
+  <div class="legend">
+    <div class="li"><span class="dot">1</span><span><b>设置入口</b>：右上角图标，进入<a href="settings.html">设置页</a>（版本信息、导出配置、日志、暗色主题）。</span></div>
+    <div class="li"><span class="dot">2</span><span><b>隧道行</b>：显示隧道名称；点击开关以外的任意位置进入该隧道的详情页。</span></div>
+    <div class="li"><span class="dot">3</span><span><b>连接开关</b>：显示连接状态（示意图中蓝色为已连接、灰色为未连接）。点击即可连接/断开，不会进入详情页。连接结果出来之前开关会暂时禁用。</span></div>
+    <div class="li"><span class="dot">4</span><span><b>添加按钮</b>：弹出添加面板（导入配置或压缩包 / 扫描二维码 / 手动创建）。</span></div>
+  </div>
+</figcaption>
+</figure>
+
+<div class="note">列表按隧道名称自然排序：不区分大小写，名称里的数字按数值大小排列——
+例如 <code>wg2</code> 会排在 <code>wg10</code> 前面。连接状态由系统实时反馈：
+即使你在系统设置里关闭了 VPN，回到本页时开关也会自动回到正确的位置。</div>
+
+<h2><span class="no">2</span>第一次使用（空列表）</h2>
+<p>一个隧道都没有时，页面中央会提示「点击下方按钮添加隧道」。此时点击右下角的「+」即可开始。</p>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="空列表示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+  <g transform="translate(258 52)" stroke="#5A6572" stroke-width="2" fill="none">
+    <circle cx="0" cy="0" r="8"/>
+    <circle cx="0" cy="0" r="2.6" fill="#5A6572" stroke="none"/>
+    <g stroke-linecap="round">
+      <line x1="0" y1="-11" x2="0" y2="-13.5"/><line x1="0" y1="11" x2="0" y2="13.5"/>
+      <line x1="-11" y1="0" x2="-13.5" y2="0"/><line x1="11" y1="0" x2="13.5" y2="0"/>
+      <line x1="-7.8" y1="-7.8" x2="-9.5" y2="-9.5"/><line x1="7.8" y1="7.8" x2="9.5" y2="9.5"/>
+      <line x1="7.8" y1="-7.8" x2="9.5" y2="-9.5"/><line x1="-7.8" y1="7.8" x2="-9.5" y2="9.5"/>
+    </g>
+  </g>
+  <!-- 空态 -->
+  <g transform="translate(150 280)" stroke="#B9C0CA" stroke-width="2" fill="none">
+    <rect x="-34" y="-26" width="68" height="52" rx="10"/>
+    <circle cx="0" cy="0" r="9"/>
+    <line x1="7" y1="7" x2="14" y2="14" stroke-linecap="round"/>
+  </g>
+  <text x="150" y="346" font-size="14" fill="#97A0AB" text-anchor="middle">点击下方按钮添加隧道</text>
+  <circle cx="250" cy="548" r="27" fill="#0A59F7"/>
+  <g stroke="#fff" stroke-width="3" stroke-linecap="round">
+    <line x1="250" y1="537" x2="250" y2="559"/><line x1="239" y1="548" x2="261" y2="548"/>
+  </g>
+</svg>
+<figcaption>空列表状态：点击「+」开始添加第一条隧道。</figcaption>
+</figure>
+
+<h2><span class="no">3</span>添加隧道</h2>
+<ol class="steps">
+  <li>点击右下角「<b>+</b>」按钮，底部弹出添加面板。</li>
+  <li>选择三种方式之一：
+    <ul>
+      <li><b>导入配置或压缩包</b>：从文件导入 <code>.conf</code> 或 <code>.zip</code>，
+        也支持从图片中识别二维码（详见<a href="tunnel-import.html">导入隧道</a>）；</li>
+      <li><b>扫描二维码</b>：用相机扫描配置二维码（设备无摄像头时不显示此项）；</li>
+      <li><b>手动创建</b>：打开空白编辑器逐项填写（详见<a href="tunnel-editor.html">隧道编辑器</a>）。</li>
+    </ul>
+  </li>
+  <li>点面板外的灰色区域可直接关闭面板，不做任何操作。</li>
+</ol>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="添加隧道面板示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <text x="210" y="26" font-size="9" font-weight="700" fill="#182431" text-anchor="end">VPN</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <text x="22" y="70" font-size="20" font-weight="700" fill="#182431">WireGuard</text>
+  <rect x="16" y="94" width="268" height="52" rx="12" fill="#FFFFFF"/>
+  <text x="32" y="126" font-size="15" fill="#182431">company-vpn</text>
+  <rect x="222" y="108" width="40" height="24" rx="12" fill="#0A59F7"/>
+  <circle cx="251" cy="120" r="10" fill="#fff"/>
+  <!-- 遮罩 -->
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#182431" opacity="0.32"/>
+  <!-- 半模态面板 -->
+  <path d="M 6 420 Q 6 396 30 396 L 270 396 Q 294 396 294 420 L 294 586 Q 294 614 266 614 L 34 614 Q 6 614 6 586 Z" fill="#FFFFFF"/>
+  <rect x="130" y="408" width="40" height="4" rx="2" fill="#D4D9DF"/>
+  <g>
+    <rect x="16" y="424" width="268" height="52" rx="12" fill="#F4F6F8"/>
+    <g transform="translate(40 450)" stroke="#0A59F7" stroke-width="2" fill="none">
+      <rect x="-8" y="-10" width="16" height="20" rx="2"/>
+      <line x1="-4" y1="-4" x2="4" y2="-4"/><line x1="-4" y1="0" x2="4" y2="0"/><line x1="-4" y1="4" x2="2" y2="4"/>
+    </g>
+    <text x="64" y="455" font-size="15" fill="#182431">导入配置或压缩包</text>
+  </g>
+  <g>
+    <rect x="16" y="484" width="268" height="52" rx="12" fill="#F4F6F8"/>
+    <g transform="translate(40 510)" stroke="#0A59F7" stroke-width="2" fill="none">
+      <rect x="-10" y="-10" width="8" height="8"/><rect x="2" y="-10" width="8" height="8"/>
+      <rect x="-10" y="2" width="8" height="8"/><rect x="2" y="2" width="4" height="4"/><rect x="8" y="8" width="2" height="2"/>
+    </g>
+    <text x="64" y="515" font-size="15" fill="#182431">扫描二维码</text>
+  </g>
+  <g>
+    <rect x="16" y="544" width="268" height="52" rx="12" fill="#F4F6F8"/>
+    <g transform="translate(40 570)" stroke="#0A59F7" stroke-width="2" fill="none">
+      <line x1="-8" y1="8" x2="8" y2="-8" stroke-linecap="round"/>
+      <path d="M -8 8 L -10 10 L -8 10 Z" fill="#0A59F7"/>
+    </g>
+    <text x="64" y="575" font-size="15" fill="#182431">手动创建</text>
+  </g>
+</svg>
+<figcaption>添加面板：三种添加方式。面板外的区域为半透明遮罩，点击可关闭。</figcaption>
+</figure>
+
+<h2><span class="no">4</span>开启与关闭隧道</h2>
+<ol class="steps">
+  <li>点击隧道行右侧的<b>开关</b>。</li>
+  <li>连接时（至少首次）系统会弹出 <b>VPN 授权框</b>（这是系统安全机制，所有 VPN 应用都一样；之后是否每次都弹出以系统为准）。
+    点击「允许」即可继续。</li>
+  <li>连接成功后开关变为已连接状态（保持高亮），系统状态栏会出现 VPN 标志。</li>
+</ol>
+<div class="tip">同时只能连接一条隧道。如果已有隧道在连接中，直接打开另一条即可——
+应用会自动先断开当前隧道再连接新的；万一新隧道连接失败，原来的隧道会自动恢复连接。</div>
+<div class="warn">如果开关拨过去又弹回来，说明连接失败。页面底部会显示完整原因
+（如「建立连接时出错：用户未授权 VPN 服务」「建立连接时出错：无法解析 DNS 主机名：'vpn.example.com'」等）。
+断开失败时同样会提示「断开连接时出错：<原因>」。
+完整说明见<a href="tunnel-connection.html">连接与断开</a>。</div>
+
+<h2><span class="no">5</span>查看隧道详情</h2>
+<p>点击隧道行的<b>名称区域</b>（开关以外的任意位置），进入详情页：查看完整配置、
+实时流量和上次握手时间，点任意字段即可复制。详见<a href="tunnel-detail.html">隧道详情</a>。</p>
+
+<h2><span class="no">6</span>批量删除隧道</h2>
+<ol class="steps">
+  <li><b>长按</b>任意隧道行，进入多选模式：顶部标题栏被操作栏取代，变为「已选择 N 个隧道」，
+    并出现「全选」「删除」操作（此时设置入口不显示）；「+」按钮隐藏。
+    注意：这里的「全选」<b>始终是选中全部</b>，再点一次不会变成取消全选。</li>
+  <li>继续<b>点击</b>其他行勾选/取消勾选。</li>
+  <li>点击「<b>删除</b>」立即删除所有选中的隧道，完成后自动退出多选模式：
+    <ul>
+      <li>全部成功：提示「成功删除了 N 项」；</li>
+      <li>有失败：提示「无法删除 N 项：&lt;原因&gt;」，删除失败的隧道会保留在列表里。</li>
+    </ul>
+  </li>
+  <li>想退出多选模式：取消全部勾选，或按系统返回键。</li>
+</ol>
+
+<figure class="shot">
+<svg viewBox="0 0 300 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="多选删除模式示意图">
+  <rect x="0" y="0" width="300" height="620" rx="34" fill="#10141A"/>
+  <rect x="6" y="6" width="288" height="608" rx="28" fill="#F1F3F5"/>
+  <text x="26" y="27" font-size="11" font-weight="600" fill="#182431">9:41</text>
+  <g fill="#182431">
+    <rect x="232" y="18" width="3" height="8" rx="1"/><rect x="237" y="15" width="3" height="11" rx="1"/>
+    <rect x="242" y="12" width="3" height="14" rx="1"/><rect x="247" y="9" width="3" height="17" rx="1"/>
+  </g>
+  <rect x="256" y="12" width="18" height="10" rx="3" fill="none" stroke="#182431"/>
+  <rect x="258" y="14" width="11" height="6" rx="1.5" fill="#182431"/>
+  <!-- 多选操作栏 -->
+  <text x="48" y="64" font-size="16" font-weight="600" fill="#182431">已选择 2 个隧道</text>
+  <text x="196" y="64" font-size="14" fill="#0A59F7">全选</text>
+  <g transform="translate(262 58)" stroke="#E84026" stroke-width="2" fill="none">
+    <rect x="-8" y="-5" width="16" height="12" rx="2"/>
+    <line x1="-10" y1="-8" x2="10" y2="-8" stroke-linecap="round"/>
+    <line x1="-3" y1="-10" x2="3" y2="-10" stroke-linecap="round"/>
+  </g>
+  <!-- 列表：2 选中 1 未选中 -->
+  <g>
+    <rect x="16" y="84" width="268" height="52" rx="12" fill="#E3EDFE"/>
+    <circle cx="36" cy="110" r="10" fill="#0A59F7"/>
+    <path d="M 31 110 L 35 114 L 42 105" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="56" y="116" font-size="15" fill="#182431">company-vpn</text>
+  </g>
+  <g>
+    <rect x="16" y="144" width="268" height="52" rx="12" fill="#E3EDFE"/>
+    <circle cx="36" cy="170" r="10" fill="#0A59F7"/>
+    <path d="M 31 170 L 35 174 L 42 165" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="56" y="176" font-size="15" fill="#182431">home-nas</text>
+  </g>
+  <g>
+    <rect x="16" y="204" width="268" height="52" rx="12" fill="#FFFFFF"/>
+    <circle cx="36" cy="230" r="10" fill="none" stroke="#B9C0CA" stroke-width="2"/>
+    <text x="56" y="236" font-size="15" fill="#182431">overseas</text>
+  </g>
+</svg>
+<figcaption>多选模式：已选中的行显示为蓝色高亮并带勾选标记；顶栏可「全选」或「删除」。</figcaption>
+</figure>
+
+<div class="warn">删除<b>不可恢复</b>，且没有二次确认：隧道配置（含私钥）会一并销毁。
+如果误删，只能重新导入或手动创建。正在连接中的隧道也可以删除——应用会先断开再删除；
+断开失败的隧道不会被删除。</div>
+
+<h2><span class="no">7</span>常见问题</h2>
+<table>
+  <tr><th>现象</th><th>原因与处理</th></tr>
+  <tr><td>开关拨过去又弹回来，底部有提示</td>
+      <td>连接失败。按提示处理（如未授权、对端域名无法解析），详见<a href="tunnel-connection.html">连接与断开</a>。</td></tr>
+  <tr><td>提示「建立连接时出错：系统同时只允许一条 VPN 连接，请先断开其他 VPN 后重试」</td>
+      <td>另一个 VPN 应用正在使用 VPN 通道。先到系统设置中断开它，再回来重试。</td></tr>
+  <tr><td>开关自己变回了「关」</td>
+      <td>VPN 在系统侧被断开（例如在系统设置里关闭，或其他 VPN 应用抢占了通道）。本页开关永远显示真实状态。</td></tr>
+  <tr><td>删除后提示「无法删除 N 项：&lt;原因&gt;」</td>
+      <td>N 为实际失败条数，这些隧道仍保留在列表中，可重试。</td></tr>
+  <tr><td>找不到「扫描二维码」入口</td>
+      <td>设备没有摄像头或相机不可用时不显示该入口，可改用「导入配置或压缩包」从图片识别二维码。</td></tr>
+</table>
+
+<nav class="foot-nav">
+  <span class="prev"><a href="index.html">← 手册首页</a></span>
+  <span class="next"><a href="tunnel-import.html">下一页：导入隧道 →</a></span>
+</nav>
+
+</div>
+</body>
+</html>
