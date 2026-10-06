@@ -113,14 +113,20 @@ zip -j tunnels.zip wg0.conf                               # 批量导入用
 - [ ] **AUTH-9 防截屏**：私钥明文显示后尝试截屏/录屏。
   **预期**：截图内容为空/被系统拦截；离开编辑器后防截屏解除（可正常截屏）。
 
-## 4. 加密原语（决策 0003 的平台薄封装）
+## 4. 加密原语（决策 0008：X25519 已改为纯 ArkTS 自实现）
 
-- [ ] **CRYPTO-1 X25519 公钥派生**（RFC 7748 §5.2 向量）：编辑器新建隧道，
-  私钥填入 `dwdtCnMYpX08FsFyUbJmRd9ML4frwJkqsXf7pR25LCo=`（即十六进制标量
+> X25519 公钥派生的算法正确性已由**本地 KAT**（`entry/src/test/X25519.test.ets`，RFC 7748 §5.2/§6.1）
+> 覆盖，不再是真机验证项；下面三项降为** UI 行为确认**（真机真实输入下的呈现）。
+
+- [ ] **CRYPTO-1 X25519 公钥派生（UI 行为）**：编辑器新建隧道，私钥填入
+  `dwdtCnMYpX08FsFyUbJmRd9ML4frwJkqsXf7pR25LCo=`（即十六进制标量
   `77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a` 的 base64）。
   **预期**：公钥实时显示为 `hSDwCYkwp1R0i33ctD73Wg2/Og0mOBr066SpjqqbTmo=`
   （十六进制 `8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a`）。
-  若不符，`crypto/KeyPair.ets` 的字节序/大整数接口用法需修正。
+  **说明**：算法已过本地 KAT（已通过）；若真机显示不符，则问题在 UI 取值/字节序/复制，
+  不在算法，查 `pages/TunnelEditorPage.ets` 与 `KeyPair` 调用。
+  附：曾尝试的 `cryptoFramework.createAsyKeyGeneratorBySpec(X25519PriKeySpec)` 在真机直接失败
+  （hilog：`expect OPENSSL.ED25519.KEYGENERATOR`）——已弃用，勿回退到该路径。
 - [ ] **CRYPTO-2 随机私钥生成**：点击「生成」，多次生成。
   **预期**：每次得到不同且合法的 44 字符 base64；对应公钥随之更新；生成不触发确认框。
 - [ ] **CRYPTO-3 详情页公钥**：进入详情页。

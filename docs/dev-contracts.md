@@ -92,8 +92,8 @@ export class Key {                          // 32 字节，base64 44 字符（�
 export class KeyFormatException extends Error { /* 中文：密钥长度错误 / 密钥中含错误字符 */ }
 export class KeyPair {
   readonly privateKey: Key; readonly publicKey: Key;
-  constructor(privateKey: Key);             // X25519 派生公钥：薄封装 cryptoFramework（设备侧有效，
-}                                           //   本地单测为空桩 → 公钥派生不进本地断言，只测格式/异常）
+  constructor(privateKey: Key);             // X25519 派生公钥：纯 ArkTS 自实现（crypto/X25519.ets，
+}                                           //   RFC 7748 KAT 本地可测；平台 by-spec 派生真机不可用，见决策 0008）
 export class Blake2s {                       // 自实现纯 ArkTS，过 RFC 7693 KAT（含 keyed）
   static hash(data: Uint8Array, outLen?: number): Uint8Array;
   static keyedHash(key: Uint8Array, data: Uint8Array, outLen?: number): Uint8Array;
@@ -262,5 +262,6 @@ onDestroy：停定时器 → `stopTunnel()` → `vpnConnection.destroy()` → �
 - 每个任务完成前必须：`make test`（校验 `grep -c "Error in "` 为 0）+ `make build` 全绿。
 - 首次跑测试前先 `make ohpm-install`（worktree 内同样需要）。
 - 纯模块（config/crypto/model/repo）单测放 `entry/src/test/*.test.ets`，一模块一文件。
-- 真机不可验的能力（X25519 派生、userAuth、vpnExtension、防截屏、扫码）写进
+- 真机不可验的能力（userAuth、vpnExtension、防截屏、扫码）写进
   `docs/device-verification.md` 清单（收尾任务统一整理）。
+  （X25519 公钥派生已自实现并进本地 KAT，不再是真机项，见决策 0008。）

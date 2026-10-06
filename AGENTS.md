@@ -35,9 +35,9 @@ spec / handbook 是验收基准，代码行为与 spec 冲突时以 spec 为准�
 | 定位 | **WireGuard VPN 客户端的 HarmonyOS 原生重写**：ArkTS + ArkUI 声明式 UI + `VpnExtensionAbility`，功能对齐上游 WireGuard-Android |
 | 数据源 | 本地用户配置（wg-quick `.conf` 文本 / 二维码 / 手动编辑），**无后端服务**；配置与私钥仅存本机 |
 | 上游参考实现 | `~/LibSource/WireGuard-Android`（tag `1.0.20260315-1-ge7b3a3c1`） |
-| 设计文档 | **[specs/*.md](specs/)**（功能规格）+ **[handbook/*.html](handbook/)**（用户说明书）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策 0001–0007）+ **[docs/dev-contracts.md](docs/dev-contracts.md)**（模块间 API 单一真源）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
+| 设计文档 | **[specs/*.md](specs/)**（功能规格）+ **[handbook/*.html](handbook/)**（用户说明书）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策 0001–0008）+ **[docs/dev-contracts.md](docs/dev-contracts.md)**（模块间 API 单一真源）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
 | 验收文档 | **[docs/device-verification.md](docs/device-verification.md)**（真机验证清单）+ **[docs/interop-testing.md](docs/interop-testing.md)**（与 Linux `wg` 互操作验收） |
-| 实现状态 | 数据面（C：BLAKE2s/HMAC/ChaCha20-Poly1305/X25519 + Noise IK 握手 + 传输 + 定时器 + NAPI + 启动 KAT）与全部功能页面（列表/详情/编辑器/导入/设置/日志/隐私）已实现；本地单测 108 例全绿、`make build` 可打包 HAP；**真机与互操作验收未完成**（见验收文档） |
+| 实现状态 | 数据面（C：BLAKE2s/HMAC/ChaCha20-Poly1305/X25519 + Noise IK 握手 + 传输 + 定时器 + NAPI + 启动 KAT）与全部功能页面（列表/详情/编辑器/导入/设置/日志/隐私）已实现；本地单测 117 例全绿、`make build` 可打包签名 HAP；**真机与互操作验收未完成**（见验收文档；真机已发现并修掉 1 处平台限制，见 [docs/decisions/0008](docs/decisions/0008-arkts-x25519-self-implemented.md)） |
 | bundleName | `me.graycarl.wireguard` |
 | 平台 | HarmonyOS（纯鸿蒙，`runtimeOS: HarmonyOS`，非兼容模式） |
 | SDK | 6.1.1(24)，target/compatible 均为 24 |
@@ -57,7 +57,8 @@ entry/               # 主模块（type: entry）
     entryability/    # EntryAbility.ets（UIAbility 入口；初始化 Logger/主题/AppStore）
     entrybackupability/
     config/          # wg-quick 解析/序列化/校验（纯 ArkTS，可本地单测）
-    crypto/          # base64/hex、Key/KeyPair、BLAKE2s、HKDF（镜像实现，KAT 对照；KeyPair 薄封装 X25519）
+    crypto/          # base64/hex、Key/KeyPair、BLAKE2s、HKDF（镜像实现，KAT 对照）
+                     # + X25519 纯 ArkTS 实现（RFC 7748 KAT；cryptoFramework by-spec 不可用，见决策 0008）
     model/           # 隧道领域模型（TunnelState/PeerStats/Tunnel）
     repo/            # tunnels.json 持久化（FileIO 注入 + TunnelRepository，纯逻辑）
     store/           # AppStore（UI 唯一入口）+ RecordMapper（Config ↔ TunnelRecord）
@@ -186,7 +187,8 @@ make help         # 列出全部目标
 - **纯算法/纯逻辑要自实现或依赖注入**（可 100% 本地测）：wg-quick 解析、base64/hex 编解码、
   BLAKE2s、HKDF、配置 diff、路由表计算 —— 全部放进不 import `@kit` 的纯 ArkTS 模块；
 - **平台原语只做成薄封装**（几行 `cryptoFramework`/`vpnExtension` 调用）并列进真机验证清单：
-  X25519 协商、ChaCha20-Poly1305、Keystore 私钥、socket、tun fd 读写。
+  ChaCha20-Poly1305、Keystore 私钥、socket、tun fd 读写、锁屏认证、防截屏。
+  （X25519 **已因平台限制改为纯 ArkTS 自实现**并进本地 KAT，不再属于平台原语，见决策 0008。）
 
 **SDK 事实（已核实）**：`@ohos.security.cryptoFramework` 提供 `ChaCha20`（含 Poly1305 模式）、
 `X25519`、`HKDF`；**不提供 BLAKE2s**（ArkTS 与 NDK `CryptoArchitectureKit/` 均无，消息摘要只有 SHA256/MD5/SHA3）。
@@ -376,3 +378,9 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
   保活/重连策略要基于这个事实设计，不能假设后台常驻。
 - **BLAKE2s 不在鸿蒙密码框架内**（ArkTS 与 NDK 都没有）：WireGuard 握手/传输密钥派生依赖它，
   必须自实现；不要试图用 HMAC-SHA256 顶替（协议不兼容，无法与对端互通）。
+- **`cryptoFramework` 的 X25519「按 spec 生成密钥对」在真机上不可用**：
+  `createAsyKeyGeneratorBySpec({algName:'X25519', sk: <bigint>})` 在设备上直接失败，hilog 报
+  `Class is not match. expect class: OPENSSL.ED25519.KEYGENERATOR, input class: OPENSSL.X25519.KEYGENERATOR`
+  → `generateKeyPairSync()` 抛错（本地单测是空桩，永远测不出来）。
+  公钥派生已改为**纯 ArkTS X25519**（`crypto/X25519.ets`，Montgomery ladder + RFC 7748 官方向量本地 KAT）。
+  若后续要用平台 X25519：先真机验证该 API，别信 d.ts 声明齐全就当可用。
