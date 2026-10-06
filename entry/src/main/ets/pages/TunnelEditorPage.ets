@@ -38,6 +38,7 @@ import {
 } from '../config/PrivateNetworks';
 import { Key } from '../crypto/Key';
 import { KeyPair } from '../crypto/KeyPair';
+import { Logger } from '../util/Logger';
 import { Toast } from '../util/Toast';
 import { Clipboard } from '../util/Clipboard';
 import { editorParamName, goBack, replaceWithDetail } from './RouteStack';
@@ -146,6 +147,9 @@ export struct TunnelEditorPage {
       const keyPair = new KeyPair(Key.fromBase64(this.privateKey));
       this.publicKey = keyPair.publicKey.toBase64();
     } catch (e) {
+      // 诊断：派生失败不应静默（真机排查用；不含密钥材料）
+      const error = e as Error;
+      Logger.error('TunnelEditor', `公钥派生失败: ${error.message}`);
       this.publicKey = '';
     }
   }
