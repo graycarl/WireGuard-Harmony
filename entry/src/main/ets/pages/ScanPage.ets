@@ -34,15 +34,16 @@ export struct ScanPage {
         .height(48)
       Text(this.message)
         .fontSize(14)
-        .fontColor($r('sys.color.ohos_id_color_text_secondary'))
+        .fontColor($r('app.color.text_secondary'))
       Text('提示：使用命令 `qrencode -t ansiutf8 < tunnel.conf` 生成二维码')
         .fontSize(12)
-        .fontColor($r('sys.color.ohos_id_color_text_secondary'))
+        .fontColor($r('app.color.text_secondary'))
         .padding({ left: 24, right: 24 })
         .textAlign(TextAlign.Center)
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.page_bg'))
     .justifyContent(FlexAlign.Center)
   }
 }

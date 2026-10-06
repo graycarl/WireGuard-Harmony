@@ -51,12 +51,16 @@ export struct LogPage {
       Row({ space: 8 }) {
         Button('导出日志文件')
           .fontSize(14)
+          .fontColor($r('app.color.accent'))
+          .backgroundColor($r('app.color.chip_bg'))
           .layoutWeight(1)
           .onClick(() => {
             this.exportLogs();
           })
         Button('分享日志文件')
           .fontSize(14)
+          .fontColor($r('app.color.accent'))
+          .backgroundColor($r('app.color.chip_bg'))
           .layoutWeight(1)
           .onClick(() => {
             this.shareLogs();
@@ -69,7 +73,7 @@ export struct LogPage {
         Column() {
           Text('暂无日志')
             .fontSize(14)
-            .fontColor($r('sys.color.ohos_id_color_text_secondary'))
+            .fontColor($r('app.color.text_secondary'))
         }
         .width('100%')
         .layoutWeight(1)
@@ -80,6 +84,7 @@ export struct LogPage {
             ListItem() {
               Text(line)
                 .fontSize(12)
+                .fontColor($r('app.color.text_primary'))
                 .fontFamily('monospace')
                 .textAlign(TextAlign.Start)
                 .width('100%')
@@ -96,6 +101,7 @@ export struct LogPage {
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.page_bg'))
   }
 
   /** 导出日志文件（用户选择保存位置）。 */

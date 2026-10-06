@@ -52,10 +52,11 @@ export struct PeerCard {
     Row() {
       Text(label)
         .fontSize(14)
-        .fontColor('#99000000')
+        .fontColor($r('app.color.text_secondary'))
         .width(120)
       Text(value)
         .fontSize(15)
+        .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
         .maxLines(singleLine ? 1 : 3)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -73,10 +74,11 @@ export struct PeerCard {
     Row() {
       Text(label)
         .fontSize(14)
-        .fontColor('#99000000')
+        .fontColor($r('app.color.text_secondary'))
         .width(120)
       Text(value)
         .fontSize(15)
+        .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
     }
     .width('100%')
@@ -88,6 +90,7 @@ export struct PeerCard {
       Text('远程')
         .fontSize(17)
         .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
         .width('100%')
         .padding({ top: 12, bottom: 4 })
       if (this.peer.publicKey.length > 0) {
@@ -115,6 +118,6 @@ export struct PeerCard {
     .width('100%')
     .padding(16)
     .borderRadius(12)
-    .backgroundColor('#F1F3F5')
+    .backgroundColor($r('app.color.card_bg'))
   }
 }

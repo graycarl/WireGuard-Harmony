@@ -71,12 +71,14 @@ export struct SettingsPage {
                 .fontSize(16)
               Text('关闭时跟随系统')
                 .fontSize(12)
-                .fontColor($r('sys.color.ohos_id_color_text_secondary'))
+                .fontColor($r('app.color.text_secondary'))
             }
             .alignItems(HorizontalAlign.Start)
             .layoutWeight(1)
 
             Toggle({ type: ToggleType.Switch, isOn: this.darkTheme })
+              .selectedColor($r('app.color.accent'))
+              .switchPointColor($r('app.color.on_accent'))
               .onChange((isOn: boolean) => {
                 this.darkTheme = isOn;
                 this.applyDarkTheme(isOn);
@@ -88,10 +90,11 @@ export struct SettingsPage {
       }
       .width('100%')
       .height('100%')
-      .divider({ strokeWidth: 0.5, color: $r('sys.color.ohos_id_color_list_separator') })
+      .divider({ strokeWidth: 0.5, color: $r('app.color.divider') })
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.page_bg'))
   }
 
   @Builder
@@ -100,10 +103,11 @@ export struct SettingsPage {
       Column({ space: 4 }) {
         Text(title)
           .fontSize(16)
+          .fontColor($r('app.color.text_primary'))
         if (summary.length > 0) {
           Text(summary)
             .fontSize(12)
-            .fontColor($r('sys.color.ohos_id_color_text_secondary'))
+            .fontColor($r('app.color.text_secondary'))
             .maxLines(3)
         }
       }
@@ -113,7 +117,7 @@ export struct SettingsPage {
       if (clickable) {
         Text('›')
           .fontSize(20)
-          .fontColor($r('sys.color.ohos_id_color_text_secondary'))
+          .fontColor($r('app.color.text_secondary'))
       }
     }
     .width('100%')

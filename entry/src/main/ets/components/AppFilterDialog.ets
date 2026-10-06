@@ -74,7 +74,7 @@ export struct AppFilterDialog {
       Column() {
         Text('未找到可用应用')
           .fontSize(15)
-          .fontColor('#99000000')
+          .fontColor($r('app.color.text_secondary'))
       }
       .width('100%')
       .height('100%')
@@ -130,15 +130,15 @@ export struct AppFilterDialog {
       Row({ space: 12 }) {
         Button('取消')
           .layoutWeight(1)
-          .fontColor('#000000')
-          .backgroundColor('#EEEEEE')
+          .fontColor($r('app.color.text_primary'))
+          .backgroundColor($r('app.color.chip_bg'))
           .onClick(() => {
             this.onCancel();
           })
         Button('全选')
           .layoutWeight(1)
-          .fontColor('#000000')
-          .backgroundColor('#EEEEEE')
+          .fontColor($r('app.color.text_primary'))
+          .backgroundColor($r('app.color.chip_bg'))
           .onClick(() => {
             this.toggleAll();
           })

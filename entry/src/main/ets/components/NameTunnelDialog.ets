@@ -34,6 +34,7 @@ export struct NameTunnelDialog {
       Text(this.options.title)
         .fontSize(18)
         .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
         .width('100%')
 
       TextInput({ text: this.name, placeholder: '隧道名称' })
@@ -48,7 +49,7 @@ export struct NameTunnelDialog {
       if (this.error.length > 0) {
         Text(this.error)
           .fontSize(12)
-          .fontColor('#E84026')
+          .fontColor($r('app.color.danger'))
           .width('100%')
       }
 

@@ -27,6 +27,7 @@ export struct TunnelListItem {
       }
       Text(this.name)
         .fontSize(17)
+        .fontColor($r('app.color.text_primary'))
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .layoutWeight(1)
@@ -37,7 +38,7 @@ export struct TunnelListItem {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(listSelection.active && listSelection.has(this.name) ? '#0D0A59F7' : Color.Transparent)
+    .backgroundColor(listSelection.active && listSelection.has(this.name) ? $r('app.color.accent_tint') : Color.Transparent)
     .onClick(() => {
       if (listSelection.active) {
         listSelection.toggle(this.name);

@@ -52,17 +52,17 @@ struct Index {
       NavDestination() {
         SettingsPage()
       }
-      .hideTitleBar(true)
+      .title('设置')
     } else if (name === ROUTE_LOG) {
       NavDestination() {
         LogPage()
       }
-      .hideTitleBar(true)
+      .title('应用日志')
     } else if (name === ROUTE_SCAN) {
       NavDestination() {
         ScanPage()
       }
-      .hideTitleBar(true)
+      .title('扫描二维码')
     }
   }
 
@@ -74,6 +74,7 @@ struct Index {
     .mode(NavigationMode.Stack)
     .hideTitleBar(true)
     .hideToolBar(true)
+    .backgroundColor($r('app.color.page_bg'))
     .ignoreLayoutSafeArea([LayoutSafeAreaType.SYSTEM], [LayoutSafeAreaEdge.BOTTOM])
   }
 }

@@ -3,6 +3,54 @@
     {
       "name": "start_window_background",
       "value": "#000000"
+    },
+    {
+      "name": "page_bg",
+      "value": "#000000"
+    },
+    {
+      "name": "card_bg",
+      "value": "#1A1A1A"
+    },
+    {
+      "name": "chip_bg",
+      "value": "#2B2B2D"
+    },
+    {
+      "name": "chip_selected_bg",
+      "value": "#1F3F97FF"
+    },
+    {
+      "name": "text_primary",
+      "value": "#E6FFFFFF"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#99FFFFFF"
+    },
+    {
+      "name": "text_tertiary",
+      "value": "#66FFFFFF"
+    },
+    {
+      "name": "accent",
+      "value": "#3F97FF"
+    },
+    {
+      "name": "accent_tint",
+      "value": "#1F3F97FF"
+    },
+    {
+      "name": "divider",
+      "value": "#33FFFFFF"
+    },
+    {
+      "name": "danger",
+      "value": "#FF6B5A"
+    },
+    {
+      "name": "on_accent",
+      "value": "#FFFFFF"
     }
   ]
 }

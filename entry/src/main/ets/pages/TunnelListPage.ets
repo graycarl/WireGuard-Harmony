@@ -165,10 +165,11 @@ export struct TunnelListPage {
       Text('WireGuard')
         .fontSize(24)
         .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
       Button('设置')
         .fontSize(16)
-        .fontColor('#0a59f7')
+        .fontColor($r('app.color.accent'))
         .backgroundColor(Color.Transparent)
         .padding({ left: 12, right: 12 })
         .onClick(() => {
@@ -186,17 +187,18 @@ export struct TunnelListPage {
       Text(`已选择 ${listSelection.count()} 个隧道`)
         .fontSize(18)
         .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
       Button('全选')
         .fontSize(16)
-        .fontColor('#0a59f7')
+        .fontColor($r('app.color.accent'))
         .backgroundColor(Color.Transparent)
         .onClick(() => {
           this.selectAll();
         })
       Button('删除')
         .fontSize(16)
-        .fontColor('#e84026')
+        .fontColor($r('app.color.danger'))
         .backgroundColor(Color.Transparent)
         .onClick(() => {
           this.deleteSelected();
@@ -213,9 +215,12 @@ export struct TunnelListPage {
       Text('添加隧道')
         .fontSize(18)
         .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
         .margin({ top: 8, bottom: 12 })
       Row() {
-        Text('导入配置或压缩包').fontSize(17)
+        Text('导入配置或压缩包')
+          .fontSize(17)
+          .fontColor($r('app.color.text_primary'))
       }
       .width('100%')
       .height(56)
@@ -225,7 +230,9 @@ export struct TunnelListPage {
       })
       if (this.scanAvailable) {
         Row() {
-          Text('扫描二维码').fontSize(17)
+          Text('扫描二维码')
+            .fontSize(17)
+            .fontColor($r('app.color.text_primary'))
         }
         .width('100%')
         .height(56)
@@ -235,7 +242,9 @@ export struct TunnelListPage {
         })
       }
       Row() {
-        Text('手动创建').fontSize(17)
+        Text('手动创建')
+          .fontSize(17)
+          .fontColor($r('app.color.text_primary'))
       }
       .width('100%')
       .height(56)
@@ -253,7 +262,7 @@ export struct TunnelListPage {
     Column() {
       Text('点击下方按钮添加隧道')
         .fontSize(15)
-        .fontColor('#99000000')
+        .fontColor($r('app.color.text_secondary'))
     }
     .width('100%')
     .height('100%')
@@ -267,8 +276,8 @@ export struct TunnelListPage {
       .height(56)
       .borderRadius(28)
       .fontSize(28)
-      .fontColor(Color.White)
-      .backgroundColor('#0a59f7')
+      .fontColor($r('app.color.on_accent'))
+      .backgroundColor($r('app.color.accent'))
       .margin({ right: 24, bottom: 24 })
       .onClick(() => {
         this.showAddSheet = true;
@@ -301,7 +310,7 @@ export struct TunnelListPage {
           .width('100%')
           .height('100%')
           .contentEndOffset(88)
-          .divider({ strokeWidth: 1, color: '#1A000000', startMargin: 16, endMargin: 16 })
+          .divider({ strokeWidth: 1, color: $r('app.color.divider'), startMargin: 16, endMargin: 16 })
         }
         if (!listSelection.active) {
           this.AddButton()
@@ -312,6 +321,7 @@ export struct TunnelListPage {
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.page_bg'))
     .onVisibleAreaChange([0.0, 1.0], (isVisible: boolean, currentRatio: number) => {
       // 从详情/编辑器/设置页返回时刷新开关状态（spec tunnel-connection.md §状态一致性）
       if (isVisible) {

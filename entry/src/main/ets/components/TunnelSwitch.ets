@@ -59,6 +59,8 @@ export struct TunnelSwitch {
 
   build() {
     Toggle({ type: ToggleType.Switch, isOn: this.isOn })
+      .selectedColor($r('app.color.accent'))
+      .switchPointColor($r('app.color.on_accent'))
       .enabled(!this.toggling)
       .onChange((isOn: boolean) => {
         this.isOn = isOn;

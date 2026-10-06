@@ -348,19 +348,22 @@ export struct TunnelEditorPage {
     Row() {
       Text('返回')
         .fontSize(16)
-        .fontColor('#0A59F7')
+        .fontColor($r('app.color.accent'))
         .onClick(() => {
           this.onBack();
         })
       Text(this.originalName === null ? '创建 WireGuard 隧道' : `编辑 ${this.tunnelName}`)
         .fontSize(18)
         .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
         .textAlign(TextAlign.Center)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
       Button(this.busy ? '保存中' : '保存')
         .fontSize(16)
+        .fontColor($r('app.color.accent'))
+        .backgroundColor(Color.Transparent)
         .enabled(!this.busy)
         .onClick(() => {
           this.onSave();
@@ -511,8 +514,8 @@ export struct TunnelEditorPage {
         Button(this.filterButtonLabel())
           .layoutWeight(1)
           .fontSize(14)
-          .fontColor('#0A59F7')
-          .backgroundColor('#E8F0FE')
+          .fontColor($r('app.color.accent'))
+          .backgroundColor($r('app.color.chip_selected_bg'))
           .onClick(() => {
             this.openAppFilter();
           })
@@ -530,7 +533,7 @@ export struct TunnelEditorPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor('#F5F5F5')
+    .backgroundColor($r('app.color.card_bg'))
     .borderRadius(12)
   }
 
@@ -544,7 +547,7 @@ export struct TunnelEditorPage {
           .layoutWeight(1)
         Button('删除')
           .fontSize(14)
-          .fontColor('#E84026')
+          .fontColor($r('app.color.danger'))
           .backgroundColor(Color.Transparent)
           .onClick(() => {
             this.removePeer(index);
@@ -652,7 +655,7 @@ export struct TunnelEditorPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor('#F5F5F5')
+    .backgroundColor($r('app.color.card_bg'))
     .borderRadius(12)
   }
 
@@ -667,8 +670,8 @@ export struct TunnelEditorPage {
           }, (peer: EditorPeerForm) => `${peer.id}#${this.peerEpoch}`)
           Button('添加节点')
             .width('100%')
-            .fontColor('#0A59F7')
-            .backgroundColor('#E8F0FE')
+            .fontColor($r('app.color.accent'))
+            .backgroundColor($r('app.color.chip_selected_bg'))
             .onClick(() => {
               this.addPeer();
             })
@@ -681,6 +684,7 @@ export struct TunnelEditorPage {
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.page_bg'))
     .onVisibleAreaChange([0.0], (isVisible: boolean) => {
       if (!isVisible) {
         this.maskKeys();

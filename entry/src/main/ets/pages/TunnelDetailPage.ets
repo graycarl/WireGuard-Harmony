@@ -128,7 +128,7 @@ export struct TunnelDetailPage {
         Image($r('sys.media.ohos_ic_public_arrow_left'))
           .width(24)
           .height(24)
-          .fillColor('#000000')
+          .fillColor($r('app.color.text_primary'))
       }
       .backgroundColor(Color.Transparent)
       .width(48)
@@ -139,13 +139,14 @@ export struct TunnelDetailPage {
       Text(this.tunnelName)
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .layoutWeight(1)
         .textAlign(TextAlign.Center)
       Button('编辑')
         .fontSize(16)
-        .fontColor('#0a59f7')
+        .fontColor($r('app.color.accent'))
         .backgroundColor(Color.Transparent)
         .padding({ left: 12, right: 12 })
         .onClick(() => {
@@ -163,10 +164,11 @@ export struct TunnelDetailPage {
     Row() {
       Text(label)
         .fontSize(14)
-        .fontColor('#99000000')
+        .fontColor($r('app.color.text_secondary'))
         .width(120)
       Text(value)
         .fontSize(15)
+        .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
         .maxLines(singleLine ? 1 : 3)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -186,6 +188,7 @@ export struct TunnelDetailPage {
         Text('本地')
           .fontSize(17)
           .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
           .layoutWeight(1)
         TunnelSwitch({ name: this.tunnelName })
       }
@@ -217,7 +220,7 @@ export struct TunnelDetailPage {
     .width('100%')
     .padding(16)
     .borderRadius(12)
-    .backgroundColor('#F1F3F5')
+    .backgroundColor($r('app.color.card_bg'))
   }
 
   build() {
@@ -240,6 +243,7 @@ export struct TunnelDetailPage {
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.page_bg'))
     .onVisibleAreaChange([0.0, 1.0], (isVisible: boolean, currentRatio: number) => {
       if (isVisible) {
         // 从编辑器返回或重新显示时刷新配置与存在性
