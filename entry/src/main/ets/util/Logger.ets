@@ -177,10 +177,13 @@ export class Logger {
   }
 
   private static write(level: string, tag: string, message: string): void {
+    // 纵深防御（specs/privacy-security.md §5）：任何情况下都不把 base64 密钥写入 hilog / 文件，
+    // 即使调用方误把含密钥的文本传进来。
+    const safeMessage = Logger.redactSecrets(message);
     if (level === 'E') {
-      hilog.error(DOMAIN, tag, '%{public}s', message);
+      hilog.error(DOMAIN, tag, '%{public}s', safeMessage);
     } else {
-      hilog.info(DOMAIN, tag, '%{public}s', message);
+      hilog.info(DOMAIN, tag, '%{public}s', safeMessage);
     }
     const dir = Logger.dir();
     if (dir === null) {
@@ -188,7 +191,7 @@ export class Logger {
     }
     Logger.ensureDir();
     const filePath = `${dir}/${Logger.processName}.log`;
-    const line = `${timestamp(Date.now())} [${level}] ${tag}: ${message}`;
+    const line = `${timestamp(Date.now())} [${level}] ${tag}: ${safeMessage}`;
     try {
       const file = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.APPEND);
       try {

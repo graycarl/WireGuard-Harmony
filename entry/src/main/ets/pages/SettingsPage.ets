@@ -2,7 +2,7 @@
  * 设置页（specs/settings.md）：版本信息、导出隧道配置（含认证）、查看应用日志、暗色主题开关。
  */
 import { common, bundleManager } from '@kit.AbilityKit';
-import { picker } from '@kit.CoreFileKit';
+import { picker, fileUri } from '@kit.CoreFileKit';
 import { zlib } from '@kit.BasicServicesKit';
 import { Toast } from '../util/Toast';
 import { Logger } from '../util/Logger';
@@ -120,6 +120,19 @@ export struct SettingsPage {
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
   }
 
+  /** 用户实际保存到的文件名（拿不到时用建议文件名）。 */
+  private static savedName(uri: string, fallback: string): string {
+    try {
+      const name = new fileUri.FileUri(uri).name;
+      if (name.length > 0) {
+        return decodeURIComponent(name);
+      }
+    } catch (e) {
+      // 退化用建议文件名
+    }
+    return fallback;
+  }
+
   private async applyDarkTheme(enabled: boolean): Promise<void> {
     const context = this.getUIContext().getHostContext() as common.Context;
     await PreferencesStore.setDarkTheme(enabled);
@@ -178,7 +191,7 @@ export struct SettingsPage {
         return;
       }
       copyFileTo(zipPath, targets[0]);
-      Toast.show(`已保存至 '${fileName}'`);
+      Toast.show(`已保存至 '${SettingsPage.savedName(targets[0], fileName)}'`);
     } catch (e) {
       Toast.show(`无法导出隧道配置：${errorMessage(e as Object)}`);
     } finally {

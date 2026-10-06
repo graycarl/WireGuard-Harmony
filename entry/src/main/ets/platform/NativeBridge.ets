@@ -117,9 +117,8 @@ export class NativeBridge {
       const host = NativeBridge.getLastError();
       return `无法解析 DNS 主机名：'${host}'`;
     }
-    if (code === NATIVE_ERR_SOCKET) {
-      return '无法创建 tun 设备';
-    }
+    // 其余（含 socket/bind、线程、KAT）均为隧道引擎启动失败，按 spec 的
+    // 「无法开启隧道（错误码 <N>）」提示；「无法创建 tun 设备」只用于 vpnConnection.create 失败。
     return `无法开启隧道（错误码 ${code}）`;
   }
 }

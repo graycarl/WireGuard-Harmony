@@ -115,10 +115,23 @@ export struct LogPage {
         return;
       }
       await Logger.exportTo(targets[0]);
-      Toast.show(`已保存至 '${fileName}'`);
+      Toast.show(`已保存至 '${LogPage.savedName(targets[0], fileName)}'`);
     } catch (e) {
       Toast.show(`无法导出日志：${errorMessage(e as Object)}`);
     }
+  }
+
+  /** 用户实际保存到的文件名（拿不到时用建议文件名）。 */
+  private static savedName(uri: string, fallback: string): string {
+    try {
+      const name = new fileUri.FileUri(uri).name;
+      if (name.length > 0) {
+        return decodeURIComponent(name);
+      }
+    } catch (e) {
+      // 退化用建议文件名
+    }
+    return fallback;
   }
 
   /** 通过系统分享把日志文件发给其他应用。 */

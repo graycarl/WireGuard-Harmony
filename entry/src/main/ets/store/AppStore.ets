@@ -39,6 +39,8 @@ export class AppStore {
   private toggling: Set<string> = new Set();
   private listeners: Array<() => void> = [];
   private ipcListener: ((payload: IpcPayload) => void) | null = null;
+  /** 隧道集合缓存（只有本进程写入磁盘；每次写操作前失效，避免统计事件导致每秒读盘）。 */
+  private cachedRecords: TunnelRecord[] | null = null;
 
   static get(): AppStore {
     if (AppStore.instance === null) {
@@ -65,15 +67,25 @@ export class AppStore {
     Logger.info(TAG, 'AppStore 初始化完成');
   }
 
-  /** 全部隧道记录（按隧道名自然排序；每次从磁盘读取，量小）。 */
+  /** 全部隧道记录（按隧道名自然排序；只在写操作后失效重读，量小）。 */
   records(): TunnelRecord[] {
+    const cached = this.cachedRecords;
+    if (cached !== null) {
+      return cached;
+    }
     const repo = this.repo;
     if (repo === null) {
       return [];
     }
     const list = repo.load();
     list.sort((a: TunnelRecord, b: TunnelRecord): number => compareTunnelNames(a.name, b.name));
+    this.cachedRecords = list;
     return list;
+  }
+
+  /** 使隧道集合缓存失效（任何写操作前调用）。 */
+  private invalidateRecords(): void {
+    this.cachedRecords = null;
   }
 
   /** 全部隧道领域对象（同上排序）。 */
@@ -154,6 +166,7 @@ export class AppStore {
     if (repo === null) {
       return `无法保存 '${name}' 的配置：存储未初始化`;
     }
+    this.invalidateRecords();
     if (!isValidTunnelName(name)) {
       return '无法创建隧道：名称无效';
     }
@@ -178,6 +191,7 @@ export class AppStore {
     if (repo === null) {
       return `无法保存 '${name}' 的配置：存储未初始化`;
     }
+    this.invalidateRecords();
     const renaming = name !== originalName;
     if (renaming && !isValidTunnelName(name)) {
       return '无法重命名隧道：名称无效';
@@ -231,6 +245,7 @@ export class AppStore {
     if (repo === null) {
       return '无法导入隧道：存储未初始化';
     }
+    this.invalidateRecords();
     if (!isValidTunnelName(name)) {
       return '无法导入隧道：名称无效';
     }
@@ -256,6 +271,7 @@ export class AppStore {
     if (repo === null) {
       return `无法删除 ${names.length} 项：存储未初始化`;
     }
+    this.invalidateRecords();
     let failed = 0;
     let lastReason = '';
     for (const name of names) {

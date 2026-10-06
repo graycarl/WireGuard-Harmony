@@ -3,7 +3,8 @@
  *
  * 依据 docs/decisions/0004：VPN 进程在状态迁移与统计更新时发布自定义公共事件，
  * 数据只含隧道名、状态、统计——**绝不含密钥/配置**。
- * payload 为 JSON 字符串，放在 CommonEventPublishData.parameters.payload。
+ * payload 为 JSON 字符串，放在 `CommonEventPublishData.data`（两侧约定，见本文件 encodePayload/decodePayload 与
+ * vpnability/WgVpnAbility.publish、backend/Backend.onEvent）。
  */
 
 import { PeerStats } from '../model/PeerStats';

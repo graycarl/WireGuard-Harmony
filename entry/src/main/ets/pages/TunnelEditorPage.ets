@@ -443,7 +443,7 @@ export struct TunnelEditorPage {
 
       // 局域网 IP 地址
       Row() {
-        Text('局域网 IP')
+        Text('局域网 IP 地址')
           .fontSize(FIELD_LABEL_SIZE)
           .width(LABEL_WIDTH)
         TextInput({ text: this.addressesText, placeholder: '10.0.0.2/32, fc00::2/128' })
@@ -553,10 +553,11 @@ export struct TunnelEditorPage {
         Text('公钥')
           .fontSize(FIELD_LABEL_SIZE)
           .width(LABEL_WIDTH)
+        // 对端公钥不是敏感信息：specs/tunnel-editor.md 只要求预共享密钥/本机私钥遮蔽。
         TextInput({ text: this.peers[index].publicKey, placeholder: '44 字符 Base64 密钥' })
           .layoutWeight(1)
           .maxLength(44)
-          .type(this.keysRevealed ? InputType.Normal : InputType.Password)
+          .type(InputType.Normal)
           .onChange((value: string) => {
             this.peers[index].publicKey = filterBase64KeyInput(value);
           })
@@ -585,7 +586,7 @@ export struct TunnelEditorPage {
 
       // 连接保活间隔
       Row() {
-        Text('保活间隔')
+        Text('连接保活间隔')
           .fontSize(FIELD_LABEL_SIZE)
           .width(LABEL_WIDTH)
         TextInput({ text: this.peers[index].keepaliveText, placeholder: '（可选，不建议设置）' })
@@ -617,7 +618,7 @@ export struct TunnelEditorPage {
 
       // 路由的 IP 地址（段）
       Row() {
-        Text('路由 IP 段')
+        Text('路由的 IP 地址（段）')
           .fontSize(FIELD_LABEL_SIZE)
           .width(LABEL_WIDTH)
         TextInput({ text: this.peers[index].allowedIPsText, placeholder: '0.0.0.0/0, ::/0' })
