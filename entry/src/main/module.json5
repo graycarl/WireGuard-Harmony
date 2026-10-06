@@ -34,6 +34,12 @@
     ],
     "extensionAbilities": [
       {
+        "name": "WgVpnAbility",
+        "srcEntry": "./ets/vpnability/WgVpnAbility.ets",
+        "type": "vpn",
+        "exported": false
+      },
+      {
         "name": "EntryBackupAbility",
         "srcEntry": "./ets/entrybackupability/EntryBackupAbility.ets",
         "type": "backup",
@@ -44,6 +50,11 @@
             "resource": "$profile:backup_config"
           }
         ],
+      }
+    ],
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.INTERNET"
       }
     ]
   }

@@ -35,7 +35,7 @@ spec / handbook 是验收基准，代码行为与 spec 冲突时以 spec 为准�
 | 定位 | **WireGuard VPN 客户端的 HarmonyOS 原生重写**：ArkTS + ArkUI 声明式 UI + `VpnExtensionAbility`，功能对齐上游 WireGuard-Android |
 | 数据源 | 本地用户配置（wg-quick `.conf` 文本 / 二维码 / 手动编辑），**无后端服务**；配置与私钥仅存本机 |
 | 上游参考实现 | `~/LibSource/WireGuard-Android`（tag `1.0.20260315-1-ge7b3a3c1`） |
-| 设计文档 | **[specs/*.md](specs/)**（功能规格，已编写）+ **[handbook/*.html](handbook/)**（用户说明书，已编写）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策，待编写）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
+| 设计文档 | **[specs/*.md](specs/)**（功能规格，已编写）+ **[handbook/*.html](handbook/)**（用户说明书，已编写）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策：0001–0007 已定，覆盖数据面/握手/持久化/进程通信/生命周期/单激活/测试策略）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
 | bundleName | `me.graycarl.wireguard` |
 | 平台 | HarmonyOS（纯鸿蒙，`runtimeOS: HarmonyOS`，非兼容模式） |
 | SDK | 6.1.1(24)，target/compatible 均为 24 |
@@ -46,7 +46,7 @@ spec / handbook 是验收基准，代码行为与 spec 冲突时以 spec 为准�
 
 ## 仓库结构
 
-当前是 DevEco 模板生成的**可编译空骨架**，业务代码尚未开始：
+当前是 **VPN 编译基座**（vpn extensionAbility + INTERNET 权限 + cpp NAPI 空壳已打通编译打包），业务代码尚未开始：
 
 ```
 AppScope/            # 应用级配置（app.json5: bundleName/版本/图标）
@@ -55,7 +55,8 @@ entry/               # 主模块（type: entry）
     entryability/    # EntryAbility.ets（UIAbility 入口）
     entrybackupability/
     pages/Index.ets  # 首页占位（后续替换为隧道列表页）
-  src/main/module.json5   # 模块配置：abilities、deviceTypes、requestPermissions
+  src/main/cpp/          # 数据面原生层（CMake + NAPI 空壳，见 docs/decisions/0001）
+  src/main/module.json5   # 模块配置：abilities、vpn extensionAbility、requestPermissions(INTERNET)
   src/main/resources/     # base/dark 资源（string/color/float/media）
   src/test/               # 本地单测（hypium，跑在宿主 JVM/Node 模拟环境）
   src/ohosTest/           # 设备侧集成测试
@@ -93,9 +94,9 @@ entry/src/main/ets/
 | `tunnel/.../config/{Config,Interface,Peer,Attribute,InetAddresses,InetNetwork,InetEndpoint,ParseException,BadConfigException}.java` | `entry/src/main/ets/config/` | **纯字符串/二进制解析，无平台依赖 → 最适合先做，且能 100% 本地单测** |
 | `tunnel/.../crypto/{Key,KeyPair,KeyFormatException}.java` | `entry/src/main/ets/crypto/` | base64/hex 编解码、公私钥格式与校验；**纯逻辑** |
 | `tunnel/.../crypto/Curve25519.java` | `entry/src/main/ets/crypto/`（薄封装 `cryptoFramework`） | 平台原语 → 只做薄封装，列真机验证清单 |
-| （协议中内联的 BLAKE2s / keyed-BLAKE2s、HKDF、ChaCha20-Poly1305） | `entry/src/main/ets/crypto/`（**自实现**） | 见「核心设计决策 3」，框架不给 BLAKE2s |
+| （协议中内联的 BLAKE2s / keyed-BLAKE2s、HKDF、ChaCha20-Poly1305） | BLAKE2s/HKDF 镜像实现在 `entry/src/main/ets/crypto/`（**自实现**，进本地单测）；正式协议实现在 `entry/src/main/cpp/` | 见「核心设计决策 3」与 [docs/decisions/0002](docs/decisions/0002-handshake-in-native-c.md)：框架不给 BLAKE2s；原语只在 C 层维护一份，ArkTS 侧仅作 KAT 对照 |
 | `tunnel/.../android/backend/{Backend,GoBackend,WgQuickBackend,Tunnel,Statistics,BackendException}.java` | `entry/src/main/ets/backend/` + `ets/vpnability/` | 上游走 `VpnService`；鸿蒙走 `VpnExtensionAbility` + `vpnExtension` API |
-| `tunnel/tools/{libwg-go,wireguard-tools,ndk-compat,elf-cleaner}`（C/Go + CMake） | 新增 `entry/src/main/cpp/` | 必须用 OHOS NDK 交叉编译；数据面（tun fd ↔ UDP）在 C/C++ 侧 |
+| `tunnel/tools/{libwg-go,wireguard-tools,ndk-compat,elf-cleaner}`（C/Go + CMake） | 新增 `entry/src/main/cpp/` | 必须用 OHOS NDK 交叉编译；数据面（tun fd ↔ UDP）在 C 侧，**自研而非移植 libwg-go**（见 [docs/decisions/0001](docs/decisions/0001-dataplane-self-implemented-c.md)） |
 | `tunnel/.../android/util/{RootShell,SharedLibraryLoader,ToolsInstaller}.java` | **裁剪**（无对应物） | 鸿蒙无 root、无 `wg`/`wg-quick` 命令行工具、无动态加载本地库需求 |
 | `ui/src/main/java/.../{activity,fragment,viewmodel,model,configStore,preference,widget,util}` | `entry/src/main/ets/{pages,components,viewmodel,model,store,repo,util}` | 界面重写（ArkUI），非逐行翻译 |
 | `ui/src/main/res/**` | `entry/src/main/resources/**` | 布局→ArkUI 声明式；图标/字符串/颜色资源按鸿蒙规范重做 |
@@ -330,6 +331,9 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
   ② 设备侧 ICMP 常被封，`ping` 不通不代表不在线。
 
 ### 本项目特有（WireGuard / VPN 方向）
+
+- **`externalNativeOptions` 必须放在模块 `build-profile.json5` 的 `buildOption` 内**：放根部会被 hvigor
+  schema 拒绝（报错只列 allowedValues，不提示正确位置）。
 
 - **`MANAGE_VPN` 是 `system_basic`**：看到 `@ohos.net.vpn` 系列 API 别急着用，普通应用只能用
   `@ohos.net.vpnExtension`（三方 VPN 能力，只需 `INTERNET`）。
