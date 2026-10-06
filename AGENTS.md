@@ -3,6 +3,30 @@
 > 本文件是 AI coding agent 的项目入口。先读「项目事实」，再按任务查「资料速查」。
 > 完整资料清单见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md)。
 
+## 开发流程规范（Spec 先行，写代码前必读）
+
+本项目采用 **spec 驱动开发**，严格按以下顺序推进，**不允许跳过文档直接写代码**：
+
+1. **`specs/*.md` —— 功能规格（先写）**
+   - 从**用户角度**描述需求：功能是什么、用户怎么操作、看到什么、边界情况如何表现。
+   - 每个功能一份 spec（如 `specs/tunnel-list.md`、`specs/tunnel-import.md`）。
+   - **spec 只描述需求和功能设计，禁止出现任何技术方案**：包括但不限于平台 API 名、
+     权限常量名、三方库名、类名/模块名、架构分层、存储方式、算法选型、测试保障方式——
+     这些一律放 `docs/decisions/`。
+   - spec 中允许涉及平台的只有两类内容：**用户可感知的系统行为**（如系统弹出的授权框）；
+     **「待验证事项」中对平台能力的疑问**（用行为语言描述，不得引用 API/组件名）。
+2. **`handbook/*.html` —— 用户使用说明书（与 spec 配套）**
+   - 面向最终用户的详细操作手册，**带 SVG 截图**（用内联 SVG 模拟界面截图，不依赖真机截图）。
+   - 与对应 spec 保持同步：spec 描述的功能必须能在 handbook 中找到对应操作说明。
+3. **`docs/decisions/*.md` —— 关键技术决策**
+   - 记录「为什么这么做」：方案选型、取舍理由、被否决的备选方案（参照 ADR 风格）。
+   - 与代码强相关的架构决策（如数据面分层、加密算法选型）都放这里。
+4. **最后才写代码。**
+
+**迭代规则**：后续任何功能新增/变更，**必须先改 spec 与 handbook，再改代码**；
+spec / handbook 是验收基准，代码行为与 spec 冲突时以 spec 为准（若 spec 本身有误，先修 spec）。
+技术方案变更时同步更新 `docs/decisions/`。
+
 ## 项目事实
 
 | 项 | 值 |
@@ -11,7 +35,7 @@
 | 定位 | **WireGuard VPN 客户端的 HarmonyOS 原生重写**：ArkTS + ArkUI 声明式 UI + `VpnExtensionAbility`，功能对齐上游 WireGuard-Android |
 | 数据源 | 本地用户配置（wg-quick `.conf` 文本 / 二维码 / 手动编辑），**无后端服务**；配置与私钥仅存本机 |
 | 上游参考实现 | `~/LibSource/WireGuard-Android`（tag `1.0.20260315-1-ge7b3a3c1`） |
-| 设计文档 | **[docs/design-v0.1.md](docs/design-v0.1.md)**（待编写：MVP 范围/架构/任务拆解，当前仅有本文件与 resources.md） |
+| 设计文档 | **[specs/*.md](specs/)**（功能规格，已编写）+ **[handbook/*.html](handbook/)**（用户说明书，待编写）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策，待编写）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
 | bundleName | `me.graycarl.wireguard` |
 | 平台 | HarmonyOS（纯鸿蒙，`runtimeOS: HarmonyOS`，非兼容模式） |
 | SDK | 6.1.1(24)，target/compatible 均为 24 |
@@ -36,7 +60,9 @@ entry/               # 主模块（type: entry）
   src/ohosTest/           # 设备侧集成测试
 build-profile.json5  # 应用级构建配置（products/签名/SDK 版本）
 oh-package.json5     # 依赖声明（当前无三方依赖，仅 devDeps: hypium, hamock）
-docs/                # 设计文档与开发资料索引
+specs/               # 功能规格（用户视角，写代码前必须先写，见「开发流程规范」）
+handbook/            # 用户使用说明书（HTML + 内联 SVG 截图）
+docs/                # 开发资料索引与 decisions/ 技术决策记录
 ```
 
 **规划中的目录结构**（动手时按此分层，详见下方「核心设计决策」）：
@@ -252,7 +278,7 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
   不要尝试在 ArkTS 里 `read/write` 虚拟网卡；需要 NAPI + 原生线程。
 - **`protect(socketFd)` 不可省**：不保护隧道 socket 会导致隧道自身流量被卷进 VPN 形成环回。
 - **系统同时只允许一条 VPN 连接**：启动接口被拒时不要重试，应提示用户先断开现有 VPN
-  （对应上游「其他 VPN 应用正在运行」的提示）。
+  （该提示为本项目新增文案，上游无对应提示）。
 - **调用 `startVpnExtensionAbility` 的应用进程退出 → 系统会主动断开 VPN**（官方「服务生命周期」）：
   保活/重连策略要基于这个事实设计，不能假设后台常驻。
 - **BLAKE2s 不在鸿蒙密码框架内**（ArkTS 与 NDK 都没有）：WireGuard 握手/传输密钥派生依赖它，
