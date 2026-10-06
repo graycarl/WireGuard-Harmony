@@ -9,6 +9,7 @@ JBR_HOME   := $(DEVECO_APP)/Contents/jbr/Contents/Home
 HVIGOR_BIN := $(DEVECO_APP)/Contents/tools/hvigor/bin
 OHPM_BIN   := $(DEVECO_APP)/Contents/tools/ohpm/bin
 HVIGOR     := $(HVIGOR_BIN)/hvigorw   # 绝对路径：make 对简单命令跳过 shell 直接 exec，用不到导出后的 PATH
+NODE       := $(or $(shell command -v node 2>/dev/null),$(DEVECO_APP)/Contents/tools/node/bin/node)
 
 export DEVECO_SDK_HOME := $(DEVECO_SDK)
 export JAVA_HOME := $(JBR_HOME)
@@ -16,13 +17,21 @@ export PATH := $(OHPM_BIN):$(HVIGOR_BIN):$(PATH)
 
 HVIGOR_FLAGS := --mode module -p product=default -p buildMode=debug --no-daemon
 
-.PHONY: build test ohpm-install clean commit help
+.PHONY: build test ohpm-install sign-import sign-status clean commit help
 
-build: ## 编译 + 打包 debug HAP（未签名，产物在 entry/build/default/outputs/）
+build: ## 编译 + 打包 debug HAP（产物在 entry/build/default/outputs/；配好签名则含 *-signed.hap）
 	$(HVIGOR) assembleHap $(HVIGOR_FLAGS)
 
 ohpm-install: ## 拉取 ohpm 依赖（首次 make test 前必需；无网时跳过）
 	ohpm install --all
+
+# 签名材料：build-profile.json5 入库时 signingConfigs 恒为 []，材料放本机 signing-config.local.json，
+# 由 hvigorfile.ts 经 config.ohos.overrides.signingConfig 注入（详见脚本内注释）。
+sign-import: ## 把 DevEco Studio 写进 build-profile.json5 的签名材料搬到本机文件并还原之
+	$(NODE) scripts/sign-config.mjs import
+
+sign-status: ## 查看当前签名材料来源（仓库是否干净 / 材料文件是否存在）
+	$(NODE) scripts/sign-config.mjs status
 
 # ⚠️ hypium 用例失败时 hvigor 仍可能打印 BUILD SUCCESSFUL（假绿），
 #    所以这里既看退出码、也 grep "Error in "，两者任一命中即判失败。

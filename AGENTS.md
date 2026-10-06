@@ -107,13 +107,20 @@ docs/                # 资料索引、decisions/（技术决策）、dev-contrac
 已封装进根目录 `Makefile`（底层调用 DevEco Studio 内置工具链，无需打开 IDE）：
 
 ```bash
-make build        # 编译 + 打包 debug HAP（未签名，产物在 entry/build/default/outputs/）
+make build        # 编译 + 打包 debug HAP（产物在 entry/build/default/outputs/；本机配好签名即出 *-signed.hap）
 make test         # 跑 LocalUnit 单测（hypium，entry/src/test）
 make ohpm-install # 拉取 ohpm 依赖（首次 make test 前必需；test 目标已内置缺失检测）
+make sign-import  # 把 DevEco Studio 写进 build-profile.json5 的签名材料搬到本机文件并还原之
+make sign-status  # 查看签名材料来源（仓库是否干净 / 材料文件是否存在）
 make help         # 列出全部目标
 ```
 
-- 签名需在 DevEco Studio 里配置后才可装真机；未签名时 SignHap WARN 跳过，可忽略
+- **签名材料不入库**：`build-profile.json5` 里 `app.signingConfigs` 恒为 `[]`（入库的是 products/
+  SDK/buildModeSet/modules），本机材料放**已 gitignore** 的 `signing-config.local.json`，由
+  `hvigorfile.ts` 经 `config.ohos.overrides.signingConfig` 注入（详见 AGENTS 已知坑）。
+  未配签名时 SignHap WARN 跳过、只产出 unsigned HAP，不影响编译验证。
+- 在 DevEco Studio 里改签名（Project Structure > Signing Configs > Apply）会把 `build-profile.json5`
+  写脏 → 跑一次 `make sign-import` 搬运 + 还原，仓库保持零签名材料。
 - 环境变量（DEVECO_SDK_HOME / JAVA_HOME / PATH）由 Makefile 自动设置，无需手动导出
 - 若本机 DevEco Studio 不在 `/Applications/DevEco-Studio.app`，改 Makefile 顶部路径
 - ⚠️ **`make test` 的假绿**：hypium 用例失败时 hvigor 仍可能打印 `BUILD SUCCESSFUL`，
@@ -282,8 +289,21 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
   → 用 `new Uint8Array(buffer.from(s,'utf-8').buffer)`。
 - **`sys.media.*` / `sys.color.*` 里看似通用的名字可能是 private**：如 `ohos_ic_public_settings`
   在 `toolchains/id_defined.json` 中不存在（编译报 Unknown resource name）→ 先去该文件 grep 合法符号。
-- **模板工程不要带他人的签名材料绝对路径**：`build-profile.json5` 留 `"signingConfigs": []` 即可正常构建
-  （只 WARN），签名由用户在 DevEco Studio 里配置。
+- **`build-profile.json5` 入库、签名材料不入库**：该文件必须提交（products/SDK/buildModeSet/modules 是
+  构建单一真源），但 `app.signingConfigs` 是 DevEco Studio 写进去的**本机绝对路径 + 加密口令**，提交了
+  别人 clone 下来必错。本项目做法：仓库里留 `"signingConfigs": []`，材料放 gitignore 的
+  `signing-config.local.json`，再由 `hvigorfile.ts` 注入；DevEco GUI 写脏后跑 `make sign-import` 搬运还原
+  （脚本 `scripts/sign-config.mjs`）。
+- **hvigor 注入签名配置的位置是 `config.ohos.overrides.signingConfig`，不是顶层 `overrides`**：
+  `hvigorfile.ts` 导出 `{ system, plugins, config: { ohos: { overrides: {...} } } }`
+  （hvigor 内部 `parseConfig(node, defaultExport.config)` → `getConfigOpt().getObject('ohos')`）。
+  该对象**只允许 `material` / `type` 两个键**——多带 `name` 直接 `00303038 Schema validate failed`
+  （报错 instancePath `/overrides/signingConfig`，params 里会列出 allowedValues，好在报错指向 hvigorfile.ts，
+  但不说清是哪个字段多余）。生效判据：日志出现 `Finished :entry:default@SignHap` + 产出 `*-signed.hap`
+  （反之是 `Will skip sign 'hos_hap'`）。口令必须是 DevEco 加密后的十六进制串（密钥来自 `~/.ohos/config/material/`，
+  hvigor 用 `DecipherUtil` 解密），**换成明文口令会报 INVALID_DATA**。
+- **改 hvigorfile.ts 后 hvigor 会重新读取签名配置**：`SignHap` 不再 UP-TO-DATE；删掉 `*-signed.hap` 再
+  `make build` 即可强制重签，比 `make clean` 全量重建快得多。
 - `js-apis-*` 旧命名页面多为子页面索引（几 KB 的链接列表），
   `arkts-apis-*` 新命名页面才有完整 API 正文。
 - **ArkTS 严格模式编译坑**：禁 `as const`；禁 `unknown` 类型转换（错误对象

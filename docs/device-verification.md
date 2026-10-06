@@ -12,7 +12,7 @@
 | 项 | 要求 |
 |---|---|
 | 设备 | HarmonyOS phone，API 24 兼容；**已开启无线调试** |
-| 签名 | 在 DevEco Studio 中配置签名（`build-profile.json5` 的 `signingConfigs`），能安装 debug HAP |
+| 签名 | 已配置调试签名：`make sign-status` 应显示 `build-profile.json5` 干净 + 材料来自本机 `signing-config.local.json`；在 DevEco Studio 里新配签名后跑 `make sign-import`。产物应为 `entry-default-signed.hap`（只有 unsigned 说明签名未生效） |
 | 安装 | `make build` 产出 `entry/build/default/outputs/default/*.hap`；`hdc install -r <hap>` |
 | 连接 | `/Users/hongbo/.pi/agent/skills/harmonyos-project-init/scripts/hdc-wifi 192.168.50.30` |
 | 抓日志 | `hdc shell hilog -r`（清空）→ 复现 → `hdc shell hilog | grep -E "WgVpnAbility|wg-dataplane|WgDataplane|AppStore|Backend"` |
