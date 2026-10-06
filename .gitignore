@@ -1,0 +1,14 @@
+/node_modules
+/oh_modules
+/local.properties
+/.idea
+**/build
+/.hvigor
+.cxx
+/.clangd
+/.clang-format
+/.clang-tidy
+**/.test
+/.appanalyzer
+# pi agent 本地状态（会话/待办），不属于工程源码
+/.pi

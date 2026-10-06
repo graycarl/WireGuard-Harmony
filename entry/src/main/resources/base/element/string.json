@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "WireGuard 主模块"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "WireGuard VPN 客户端"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "WireGuard"
+    }
+  ]
+}
