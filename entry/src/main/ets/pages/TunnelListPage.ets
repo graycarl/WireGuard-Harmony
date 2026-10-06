@@ -16,7 +16,7 @@ import { TunnelListItem } from '../components/TunnelListItem';
 import { listSelection } from '../components/ListSelection';
 import { ImportService } from '../services/ImportService';
 import { Toast } from '../util/Toast';
-import { goDetail, goEditor, goSettings } from './RouteStack';
+import { goDetail, goEditor, goSettings, pathStack } from './RouteStack';
 
 /**
  * 返回键处理注册表：列表是 Navigation 的首页内容（非 NavDestination），
@@ -62,7 +62,14 @@ export struct TunnelListPage {
       this.refresh();
     };
     AppStore.get().addListener(this.storeListener);
-    ListBackHandler.register(() => this.handleBack());
+    ListBackHandler.register(() => {
+      // 若栈顶还有 NavDestination（详情/编辑器等），返回键交给 Navigation 处理；
+      // 只有停在首页内容时才负责退出多选模式。
+      if (pathStack.size() > 0) {
+        return false;
+      }
+      return this.handleBack();
+    });
     this.refresh();
   }
 

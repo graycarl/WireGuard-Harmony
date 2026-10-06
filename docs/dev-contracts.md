@@ -150,7 +150,7 @@ export interface TunnelSnapshot {            // UI 只读快照（决策 0004：
 export class AppStore {
   static get(): AppStore;                    // 懒初始化单例
   init(context: Context): void;              // EntryAbility 调用（幂等）：Logger、FsFileIO+repo、订阅事件
-  records(): TunnelRecord[];                 // 已按 compareTunnelNames 排序（每次 load，量小）
+  records(): TunnelRecord[];                 // 已按 compareTunnelNames 排序（缓存；写操作后失效重读）
   tunnels(): Tunnel[];                       // 领域对象（同排序）
   configOf(name: string): Config | null;     // RecordMapper.toConfig
   snapshot(name: string): TunnelSnapshot;    // 无 → { state:DOWN, peers:[] }
@@ -254,8 +254,8 @@ onDestroy：停定时器 → `stopTunnel()` → `vpnConnection.destroy()` → �
 - `entry/oh-package.json5` dependencies 追加：`"libentry.so": "file:./src/main/cpp/types/libentry"`。
 - 图标：`sys.media.*` 符号必须先在 `$DEVECO_SDK_HOME/default/openharmony/toolchains/id_defined.json`
   grep 到才可用；不确定就用文字按钮。
-- 应用过滤：可枚举范围以平台能力为准（大概率普通应用拿不到全量列表 → 空态「未找到可用应用」，
-  spec 已定案）；VpnConfig 的 trusted/blockedApplications 字段照常接。
+- 应用过滤：**已核实**普通应用拿不到已安装应用枚举能力（见 specs/tunnel-editor.md）
+  → 对话框固定空态「未找到可用应用」；VpnConfig 的 trusted/blockedApplications 字段照常接。
 
 ## 13. 构建与测试纪律
 

@@ -142,7 +142,17 @@ export class AppStore {
       return null;
     }
     const currentlyUp = this.snapshot(name).state === TunnelState.UP;
-    this.toggling.add(name);
+    // 切换隧道时（B 未连接、A 已连接）两个开关都要临时禁用（specs/tunnel-connection.md §切换隧道）。
+    const touched: string[] = [name];
+    if (!currentlyUp) {
+      const active = this.activeName();
+      if (active !== null && active !== name && !this.toggling.has(active)) {
+        touched.push(active);
+      }
+    }
+    for (const item of touched) {
+      this.toggling.add(item);
+    }
     this.notify();
     try {
       if (currentlyUp) {
@@ -155,7 +165,9 @@ export class AppStore {
       const prefix = currentlyUp ? '断开连接时出错：' : '建立连接时出错：';
       return `${prefix}${AppStore.messageOf(e)}`;
     } finally {
-      this.toggling.delete(name);
+      for (const item of touched) {
+        this.toggling.delete(item);
+      }
       this.notify();
     }
   }
