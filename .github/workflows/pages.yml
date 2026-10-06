@@ -1,0 +1,51 @@
+name: Pages (handbook)
+
+# 把 handbook/ 目录作为静态站点发布到 GitHub Pages。
+# 为什么用 Actions 而不是「分支 + 文件夹」：后者只允许 `/` 或 `/docs` 作为站点根，
+# 而本站点根是 handbook/，所以走 Pages 产物（artifact）方式，站点 URL：
+#   https://graycarl.github.io/WireGuard-Harmony/
+#
+# 触发策略：只在默认分支 main 上发布（改完手册先合并到 main 才上线）。
+# 注意：因此 handbook/ 的改动必须合并进 main 才会生效。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'handbook/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时刻只跑一个 Pages 部署，但不取消进行中的部署（避免站点处于半更新状态）
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      # handbook/ 自包含（index.html + 8 个页面 + style.css，链接全是相对路径），
+      # 直接整目录作为站点根；upload-pages-artifact 不做 Jekyll 处理，无需 .nojekyll。
+      - name: Upload handbook as Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: handbook
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
