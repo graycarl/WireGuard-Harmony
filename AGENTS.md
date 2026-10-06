@@ -40,6 +40,7 @@ spec / handbook 是验收基准，代码行为与 spec 冲突时以 spec 为准�
 | 平台 | HarmonyOS（纯鸿蒙，`runtimeOS: HarmonyOS`，非兼容模式） |
 | SDK | 6.1.1(24)，target/compatible 均为 24 |
 | 设备 | phone |
+| 调试手机 | 真机无线调试固定 IP **`192.168.50.30`**（端口仍随机，用 `scripts/hdc-wifi` 自动发现，见「真机无线调试」） |
 | 语言/UI | ArkTS + ArkUI 声明式开发 |
 | 构建系统 | hvigor（modelVersion 6.1.1） |
 
@@ -116,6 +117,28 @@ make help         # 列出全部目标
 - ⚠️ **`make test` 的假绿**：hypium 用例失败时 hvigor 仍可能打印 `BUILD SUCCESSFUL`，
   只有日志里有 `Error in <case>`。判断测试是否真的通过必须：
   `make test 2>&1 | grep -c "Error in"` 为 0（Makefile 的 test 目标已内置该校验）。
+
+## 真机无线调试（hdc 端口随机，别手抄）
+
+鸿蒙手机「无线调试」的端口**每次开启 / 重启 / 换 Wi-Fi 都会变**，官方 UI 不给固定；设备上还常有
+3~5 个「TCP 能连上但不是 hdc」的开放端口，`hdc tconn` 打上去会**挂 30~60s** 才返回（不是网络慢、
+也不是扫描慢，别被带偏）。已封装自动发现（脚本随 `harmonyos-project-init` skill 分发，**本项目不落副本**，
+升级 skill 即生效）：
+
+- **本机调试用手机 IP 固定为 `192.168.50.30`**（已做地址绑定），直接把它传给脚本即可；
+  但**端口仍每次开启/重启/换 Wi-Fi 都会变**，所以照旧走脚本、别手抄端口。
+
+```bash
+/Users/hongbo/.pi/agent/skills/harmonyos-project-init/scripts/hdc-wifi 192.168.50.30     # 常用：指定本机调试手机（IP 固定，端口由脚本发现）
+/Users/hongbo/.pi/agent/skills/harmonyos-project-init/scripts/hdc-wifi                   # 热路径 ~1s：记住上次 IP:端口，命中即连
+/Users/hongbo/.pi/agent/skills/harmonyos-project-init/scripts/hdc-wifi --port 5555       # 配 `hdc tmode port 5555` 的固定端口模式（若机型支持固定端口）
+```
+
+- 只有端口变了才扫描：并发扫 25000-65535（1024 并发 / 0.25s，约 10s）+ 逐个带超时验证 → 冷启动约 24s。
+- **别**为了更快把扫描并发调到 4096/0.12s：实测 4 万个端口一个都扫不到（SYN 被设备丢弃）。
+- 依赖 bash≥3.2 / python3≥3.9 / DevEco 自带 hdc（脚本自动定位，`HDC=` 可覆盖），
+  不需要 brew 装任何东西（也无需 timeout/nc/jq，无需 sudo）。
+- 首次无线连接需在手机上点「允许」授权；设备侧 ICMP 常被封，所以脚本的 ping 只作提示、不作判据。
 
 ## 核心设计决策
 
@@ -255,6 +278,8 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
   在 `toolchains/id_defined.json` 中不存在（编译报 Unknown resource name）→ 先去该文件 grep 合法符号。
 - **模板工程不要带他人的签名材料绝对路径**：`build-profile.json5` 留 `"signingConfigs": []` 即可正常构建
   （只 WARN），签名由用户在 DevEco Studio 里配置。
+- `js-apis-*` 旧命名页面多为子页面索引（几 KB 的链接列表），
+  `arkts-apis-*` 新命名页面才有完整 API 正文。
 - **ArkTS 严格模式编译坑**：禁 `as const`；禁 `unknown` 类型转换（错误对象
   用 `as BusinessError`，`import { BusinessError } from '@kit.BasicServicesKit'`）；interface 对象
   禁 `obj['key']` 索引访问（先 `as Record<string, Object>`）；禁构造参数属性 `constructor(private x)`；
@@ -265,10 +290,44 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
   即使不配置也会占位压缩内容区（实测 ~112vp）→ 单栏应用应显式 `.hideTitleBar(true).hideToolBar(true)`。
 - **Navigation 路由表必须绑组件内 @Builder 方法**（`.navDestination(this.PageMap)`）；
   `pushPath({name})` 不传 param 时运行时是 `undefined`，若透传给 `@Param param: object` 会类型不匹配 → **页面空白**。
+  排查空白页优先级：路由表形式 → param 透传 → NavDestination 是否包在子页组件内。
+- **Navigation 内容区安全区/高度规则**：Navigation 自身全屏但**内容区布局在安全区内**（顶部避让状态栏、
+  底部避让手势条，底部手势条区域露 Navigation 背景）；Navigation 默认 `expandSafeArea([SYSTEM],TOP/BOTTOM)`
+  只是绘制扩展。排查底部留白时不要怀疑子组件 `height('100%')` 失效——先量 Navigation/内容区实际高度
+  （`onAreaChange` 打日志），根因常是标题栏/工具栏占位或安全区。
+- **正文延伸到屏幕底用 Navigation 级 ignoreLayoutSafeArea**：`expandSafeArea` 仅扩展绘制区域、布局不变，
+  透明背景组件加它无视觉效果、滚动内容也不会延伸（旧方案在页面 Column 上加它无效）；正确做法是
+  Navigation 上 `.ignoreLayoutSafeArea([LayoutSafeAreaType.SYSTEM], [LayoutSafeAreaEdge.BOTTOM])`
+  （API 20+，枚举全局声明免 import），且**前提是标题栏/工具栏已隐藏**，否则无法扩展到非安全区。
+- **V2 组件可作 NavDestination 宿主**：官方 Navigation 案例全是 V1（@Component），但 @ComponentV2 文档
+  声明与 @Component 行为一致（无 NavDestination 限制），可放心用。
+- **LazyForEach 禁用零高度占位项实现折叠**：折叠行若渲染为 `Row().height(0)`，索引↔像素映射非线性，
+  fling 穿过折叠块边界时可见窗口单帧跳过上百索引 → 单帧批量创建组件，造成严重滚动抖动
+  （症状：含折叠内容多时滚动持续卡顿，日志可见行组件成片重建）。正确做法：数据源只放可见行，
+  折叠态记录在全量数组（foldedAncestors），toggle 时过滤重建可见数组 + onDataReloaded（纯数据 O(n)）。
+- **应用图标规范**（官方《应用图标》设计指南）：分层资源 background+foreground 均 1024×1024 正方形 PNG，
+  不做圆角（系统裁切）；**背景层不允许透明像素**；渐变色方向统一、上浅下深、两端色值差异适度；
+  前景主体居中、勿近四角。module.json5 的 `$media:layered_image` 用的是 entry 模块资源（覆盖 AppScope
+  同名资源），改图标时 **AppScope 与 entry 两处 + startIcon.png 都要替换**。
 - **未绑定组件的 Scroller 调用 `currentOffset()`/`scrollTo()` 会崩溃**（API 23 才有 `offset()` 安全版）
   → 对未绑定 scroller 的调用要按形态分支跳过。
-- **`MenuItemOptions.content` 只接受 ResourceStr**（不能传 CustomBuilder）；**Menu 长按菜单**用
-  `bindContextMenu(ResponseType.LongPress)`，半模态表单用 `bindSheet`。
+- **菜单组件约束**：`MenuItemOptions.content` 只接受 ResourceStr，不能传 CustomBuilder（编译报
+  `Type '() => void' is not assignable to 'ResourceStr'`），`MenuItemAttribute` 也没有 fontColor
+  → 长按菜单里删除项做红字需换自定义 Menu 布局，或用普通项 + `labelInfo: '不可恢复'` 警示；
+  **Menu 长按菜单**用 `bindContextMenu(ResponseType.LongPress)`，半模态表单用 `bindSheet`。
+- **对接第三方 REST API 先查清写操作回显**：部分端点（如 create）有 id 回显但缺完整字段，
+  多数（update/move/delete）只有 `{"status":"ok"}` 无回显；本地乐观更新时缺失字段（priority/时间戳等）
+  需自行估算，否则下次全量刷新后内容跳变。
+- **编辑表单防富文本覆盖**：数据源富文本（如服务器端 markdown→HTML 转换）由别处生成时，简单纯文本
+  表单无法编辑富文本。保存时**只提交变更字段**（与纯文本原文比较），未改动的字段不提交，
+  避免"纯文本回写覆盖服务器已存富文本"。
+- **真机无线调试端口随机，且「看起来能连」的端口不代表是 hdc**：端口每次开启/重启/换 Wi-Fi 都变
+  （无规律，实测落在 `3xxxx`~`6xxxx`），官方 UI 不给固定。设备上常有 3~5 个**TCP 能连上但不是 hdc**
+  的开放端口，`hdc tconn` 打上去会**挂 30~60s** 才返回（易误判为网络/扫描慢）→ 别手抄端口、别裸调
+  `hdc tconn`，用上节「真机无线调试」里的 `scripts/hdc-wifi` 自动发现。
+  两个附带坑：① 已连接时 `hdc tconn` 返回 `[Info]Target is connected, repeat operation` 而非
+  `Connect OK`，判断是否连上要看 `hdc list targets` 里有没有 `IP:port`；
+  ② 设备侧 ICMP 常被封，`ping` 不通不代表不在线。
 
 ### 本项目特有（WireGuard / VPN 方向）
 
