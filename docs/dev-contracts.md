@@ -13,11 +13,12 @@
 | `ets/crypto/` | base64、Key/KeyPair、BLAKE2s、HKDF（ArkTS 镜像，KAT 对照） | 仅 `KeyPair` 派生公钥时薄封装 cryptoFramework（见 §4） |
 | `ets/model/` | 隧道领域模型与状态枚举 | ❌ |
 | `ets/repo/` | tunnels.json 持久化（文件 I/O 注入） | ❌（I/O 接口注入，实现由调用方给） |
-| `ets/store/` | 全局状态门面 AppStore（UI 唯一入口） | ✅ |
-| `ets/backend/` | 隧道控制（vpnExtension 薄封装、单激活互斥、错误映射） | ✅ |
+| `ets/store/` | 全局状态门面 AppStore + `RecordMapper`（Config↔Record 纯映射） | ✅（AppStore）/ ❌（RecordMapper） |
+| `ets/backend/` | 隧道控制 Backend/VpnController、IPC 协议 `IpcProtocol`、AuthGuard、PrivacyMode | ✅ |
+| `ets/platform/` | 平台实现：`FsFileIO`、`PreferencesStore`、`NativeBridge` | ✅ |
 | `ets/vpnability/` | WgVpnAbility（VPN 进程：建网卡、下发 C 数据面、发公共事件） | ✅ |
 | `ets/pages/`、`ets/components/` | UI（ArkUI 声明式） | ✅ |
-| `ets/util/` | 日志、格式化（字节/时间）、Toast 等 | 尽量纯；日志写文件部分可 @kit |
+| `ets/util/` | 日志（Logger，按进程分文件）、格式化（字节/时间） | 日志用 fs/hilog；格式化纯逻辑 |
 | `cpp/` | C 数据面全部（原语/握手/传输/定时器/NAPI 胶水） | NDK only |
 
 ## 2. 公共规则
@@ -139,7 +140,7 @@ export class TunnelRepository {              // 纯逻辑，全部可本地单�
 }
 ```
 
-## 6. `store/` 契约（UI 唯一入口；普通类单例 + addListener/removeListener，页面 `@Local version` 自珍重渲）
+## 6. `store/` 契约（UI 唯一入口；普通类单例 + addListener/removeListener，页面 `@Local version` 自增重渲）
 
 ```ts
 export interface TunnelSnapshot {            // UI 只读快照（决策 0004：外部真源）
@@ -147,31 +148,44 @@ export interface TunnelSnapshot {            // UI 只读快照（决策 0004：
   peers: PeerStats[];                        // 详情页实时统计
 }
 export class AppStore {
-  static get(): AppStore;                    // 懒初始化：注入 context（filesDir）后 load
-  init(context: Context): void;              // EntryAbility 调用；建 repo、订阅公共事件
-  tunnels(): Tunnel[];                       // 已按 compareTunnelNames 排序
-  snapshot(name: string): TunnelSnapshot;    // 无 → 全零 DOWN
-  activeName(): string | null;
-  toggling(name: string): boolean;           // 开关禁用依据（连接结果确定前）
-  toggle(name: string): Promise<string | null>;   // 返回错误提示串；null=成功
-  create(name: string, config: Config): Promise<string | null>;
-  save(originalName: string, name: string, config: Config): Promise<string | null>; // 含改名/已连接重连
-  remove(names: string[]): Promise<string | null>;  // 批量删除（已连接先断；失败计数）
+  static get(): AppStore;                    // 懒初始化单例
+  init(context: Context): void;              // EntryAbility 调用（幂等）：Logger、FsFileIO+repo、订阅事件
+  records(): TunnelRecord[];                 // 已按 compareTunnelNames 排序（每次 load，量小）
+  tunnels(): Tunnel[];                       // 领域对象（同排序）
+  configOf(name: string): Config | null;     // RecordMapper.toConfig
+  snapshot(name: string): TunnelSnapshot;    // 无 → { state:DOWN, peers:[] }
+  activeName(): string | null;               // 真实激活隧道（Backend 事件驱动）
+  isToggling(name: string): boolean;         // 开关禁用依据（连接结果确定前）
+  toggle(name: string): Promise<string | null>;   // 失败返回「建立/断开连接时出错：<原因>」；null=成功
+  create(name: string, config: Config): Promise<string | null>;      // 新建议定文案
+  save(originalName: string, name: string, config: Config): Promise<string | null>; // 改名/改配置；已连接先断后重连
+  importTunnel(name: string, config: Config): Promise<string | null>; // 「无法导入隧道：<原因>」
+  remove(names: string[]): Promise<string | null>;  // 全部成功 null，否则「无法删除 N 项：<原因>」
   addListener(cb: () => void): void; removeListener(cb: () => void): void;
 }
 ```
 
+要点：连接状态/统计只由公共事件驱动（UI 不存意图态）；冷启动全部 DOWN（决策 0004 §3）。
+
 ## 7. `backend/` 契约
 
-- `Backend`（进程内单例）：`connect(name)` / `disconnect(name)` / 单激活互斥与切换回滚
-  （spec tunnel-connection.md §切换隧道：先断 A 再连 B；B 失败自动恢复 A）。
-- `vpnExtension` 薄封装：`startVpnExtensionAbility(want{tunnelName})`、
-  `stopVpnExtensionAbility(want{tunnelName})`；BusinessError code → spec 固定文案映射：
-  - 用户拒绝授权 → 「用户未授权 VPN 服务」
-  - 系统已有其他 VPN 占用 → 「系统同时只允许一条 VPN 连接，请先断开其他 VPN 后重试」
-  - 创建 tun 失败 → 「无法创建 tun 设备」；启动服务失败 → 「无法启动 VPN 服务」
-  - 引擎错误码 → 「无法开启隧道（错误码 <N>）」；DNS → 「无法解析 DNS 主机名：'<主机名>'」
-  - 其他 → 「未知的 '<描述>' 错误」
+```ts
+export class Backend {                       // 进程内单例（static get()）
+  initIpc(context: Context): void;           // createSubscriberSync + subscribeToEvent(TUNNEL_EVENT)
+  activeName(): string | null;               // 由事件维护的单一真源（决策 0006）
+  setActiveFromEvent(tunnel: string, state: IpcState): void;
+  connect(name: string): Promise<void>;      // 若 A 已激活：先 disconnect(A) 再 start(B)；B 失败尽力恢复 A
+  disconnect(name: string): Promise<void>;   // stop + 等 down 事件（超时按成功）
+  addListener(cb: (payload: IpcPayload) => void): void;
+  removeListener(cb: (payload: IpcPayload) => void): void;
+}
+```
+
+- `VpnController.start/stop(tunnelName)`：vpnExtension 薄封装（Want 带 `parameters.tunnelName`）。
+  BusinessError code → spec 固定文案映射：`2203001` 用户未授权 VPN 服务；`2203002` 系统同时只允许一条
+  VPN 连接…；`2200001/2200002/2200003/401`（create 路径）无法创建 tun 设备；其余 start 失败 → 无法启动 VPN 服务。
+- `AuthGuard.authenticate(title): Promise<AuthResult>`（SUCCESS/FAILED/CANCELLED/ERROR；无认证能力→SUCCESS）。
+- `PrivacyMode.setEnabled(context, bool)`；`NativeBridge`（§8 的函数 + `buildConfigJson(Config)` + `describeStartError`）。
 - 操作前缀：开启失败「建立连接时出错：<原因>」；关闭失败「断开连接时出错：<原因>」。
 
 ## 8. NAPI 契约（`cpp/types/libentry/Index.d.ts`，C 侧实现，双方不得擅自改）
@@ -204,10 +218,12 @@ keepalive/握手重试与指数退避）。UDP 用非连接 socket + sendto/recv
 ## 9. IPC 公共事件契约（决策 0004）
 
 - 事件名：`me.graycarl.wireguard.event.TUNNEL`
-- `publishData` 用 `commonEventManager.publish(event, { parameters: { payload: <string> } })`
-- payload JSON：`{ "tunnel": "wg0", "state": "up"|"down", "peers": [WgPeerStats…] }`
-  （state 迁移时立即发；up 期间每 1s 发一次统计；down 时 peers 为空数组）
-- UI 侧 AppStore 订阅并更新快照；payload 绝不含密钥/配置。
+- 发布：`commonEventManager.publish(TUNNEL_EVENT, { data: encodePayload(payload) }, cb)`
+- payload JSON：`{ "tunnel": "wg0", "state": "up"|"down", "peers": [PeerStats…], "error"?: string }`
+  （state 迁移时立即发；up 期间每 1s 发一次统计；down 时 peers 为空数组；`error` 仅「建立失败」时携带，
+  供 UI 立即拿到失败原因，不等待超时）
+- 订阅：`createSubscriberSync({events:[TUNNEL_EVENT]})` + `subscribeToEvent`；UI 侧 AppStore 订阅并更新快照；
+  payload 绝不含密钥/配置。
 
 ## 10. WgVpnAbility 流程
 
@@ -233,7 +249,8 @@ onDestroy：停定时器 → `stopTunnel()` → `vpnConnection.destroy()` → �
 ## 12. 权限 / 依赖 / 资源约定
 
 - `module.json5` requestPermissions 追加：`ohos.permission.CAMERA`（扫码，user_grant，
-  用前动态申请）、`ohos.permission.PRIVACY_WINDOW`（编辑器防截屏，system_grant 声明即用）。
+  用前动态申请）、`ohos.permission.PRIVACY_WINDOW`（编辑器防截屏，system_grant 声明即用）、
+  `ohos.permission.ACCESS_BIOMETRIC`（锁屏认证，system_grant 声明即用）。
 - `entry/oh-package.json5` dependencies 追加：`"libentry.so": "file:./src/main/cpp/types/libentry"`。
 - 图标：`sys.media.*` 符号必须先在 `$DEVECO_SDK_HOME/default/openharmony/toolchains/id_defined.json`
   grep 到才可用；不确定就用文字按钮。
