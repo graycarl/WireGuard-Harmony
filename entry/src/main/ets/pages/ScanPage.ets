@@ -7,7 +7,7 @@
  */
 @ComponentV2
 export struct ScanPage {
-  @Param param: object = {};
+  @Param param: object = new Object();
 
   build() {
     Column() {

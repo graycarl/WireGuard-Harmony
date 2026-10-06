@@ -6,7 +6,7 @@
  */
 @ComponentV2
 export struct SettingsPage {
-  @Param param: object = {};
+  @Param param: object = new Object();
 
   build() {
     Column() {
