@@ -6,6 +6,7 @@ import recordMapperTest from './RecordMapper.test';
 import formatTest from './Format.test';
 import ipcProtocolTest from './IpcProtocol.test';
 import tunnelDisplayTest from './TunnelDisplay.test';
+import editorUtilsTest from './EditorUtils.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -16,4 +17,5 @@ export default function testsuite() {
   formatTest();
   ipcProtocolTest();
   tunnelDisplayTest();
+  editorUtilsTest();
 }
