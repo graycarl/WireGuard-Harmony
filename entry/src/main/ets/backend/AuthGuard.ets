@@ -89,19 +89,22 @@ export class AuthGuard {
           resolve(result);
         }
       };
-      instance.on('result', (result: userAuth.UserAuthResult): void => {
-        if (result.result === userAuth.UserAuthResultCode.SUCCESS) {
-          finish({ kind: AuthResultKind.SUCCESS, message: '' });
-        } else if (result.result === userAuth.UserAuthResultCode.CANCELED) {
-          finish({ kind: AuthResultKind.CANCELLED, message: '' });
-        } else if (result.result === userAuth.UserAuthResultCode.FAIL) {
-          finish({ kind: AuthResultKind.FAILED, message: '认证失败' });
-        } else if (result.result === userAuth.UserAuthResultCode.LOCKED) {
-          finish({ kind: AuthResultKind.FAILED, message: '认证失败：认证失败次数过多，已被锁定' });
-        } else {
-          finish({ kind: AuthResultKind.ERROR, message: `认证失败：${reasonForCode(result.result)}` });
+      const callback: userAuth.IAuthCallback = {
+        onResult: (result: userAuth.UserAuthResult): void => {
+          if (result.result === userAuth.UserAuthResultCode.SUCCESS) {
+            finish({ kind: AuthResultKind.SUCCESS, message: '' });
+          } else if (result.result === userAuth.UserAuthResultCode.CANCELED) {
+            finish({ kind: AuthResultKind.CANCELLED, message: '' });
+          } else if (result.result === userAuth.UserAuthResultCode.FAIL) {
+            finish({ kind: AuthResultKind.FAILED, message: '认证失败' });
+          } else if (result.result === userAuth.UserAuthResultCode.LOCKED) {
+            finish({ kind: AuthResultKind.FAILED, message: '认证失败：认证失败次数过多，已被锁定' });
+          } else {
+            finish({ kind: AuthResultKind.ERROR, message: `认证失败：${reasonForCode(result.result)}` });
+          }
         }
-      });
+      };
+      instance.on('result', callback);
       try {
         instance.start();
       } catch (e) {

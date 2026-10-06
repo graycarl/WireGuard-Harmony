@@ -7,6 +7,7 @@ import formatTest from './Format.test';
 import ipcProtocolTest from './IpcProtocol.test';
 import tunnelDisplayTest from './TunnelDisplay.test';
 import editorUtilsTest from './EditorUtils.test';
+import importLogicTest from './ImportLogic.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -18,4 +19,5 @@ export default function testsuite() {
   ipcProtocolTest();
   tunnelDisplayTest();
   editorUtilsTest();
+  importLogicTest();
 }
