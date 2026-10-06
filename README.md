@@ -8,6 +8,10 @@ WireGuard VPN 客户端的 **HarmonyOS 原生重写**：ArkTS + ArkUI 声明式 
 > **真机与互操作验收仍在进行中**（清单见 `docs/device-verification.md`）。
 > 未上架应用市场，也不提供安装包下载，请自行构建。
 
+📖 **用户手册（在线）**：<https://graycarl.github.io/WireGuard-Harmony/>
+（源文件在 [`handbook/`](handbook/)，改完需合并到 `main` 才会自动发布，见
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml)）
+
 ## 特性
 
 - **无后端、无账号**：配置与私钥只存本机；支持 wg-quick `.conf` 文本、二维码（含图片识别）、手动编辑
