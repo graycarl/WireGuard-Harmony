@@ -5,6 +5,7 @@ import configTest from './Config.test';
 import recordMapperTest from './RecordMapper.test';
 import formatTest from './Format.test';
 import ipcProtocolTest from './IpcProtocol.test';
+import importLogicTest from './ImportLogic.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -14,4 +15,5 @@ export default function testsuite() {
   recordMapperTest();
   formatTest();
   ipcProtocolTest();
+  importLogicTest();
 }
