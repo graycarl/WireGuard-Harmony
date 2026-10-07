@@ -1,6 +1,8 @@
 /node_modules
 /oh_modules
 /local.properties
+# 本机签名材料（由 DevEco Studio 写出，经 hvigorfile.ts 注入；绝不入库）
+/signing-config.local.json
 /.idea
 **/build
 /.hvigor

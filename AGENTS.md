@@ -35,7 +35,9 @@ spec / handbook 是验收基准，代码行为与 spec 冲突时以 spec 为准�
 | 定位 | **WireGuard VPN 客户端的 HarmonyOS 原生重写**：ArkTS + ArkUI 声明式 UI + `VpnExtensionAbility`，功能对齐上游 WireGuard-Android |
 | 数据源 | 本地用户配置（wg-quick `.conf` 文本 / 二维码 / 手动编辑），**无后端服务**；配置与私钥仅存本机 |
 | 上游参考实现 | `~/LibSource/WireGuard-Android`（tag `1.0.20260315-1-ge7b3a3c1`） |
-| 设计文档 | **[specs/*.md](specs/)**（功能规格，已编写）+ **[handbook/*.html](handbook/)**（用户说明书，已编写）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策：0001–0007 已定，覆盖数据面/握手/持久化/进程通信/生命周期/单激活/测试策略）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
+| 设计文档 | **[specs/*.md](specs/)**（功能规格）+ **[handbook/*.html](handbook/)**（用户说明书）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策 0001–0008）+ **[docs/dev-contracts.md](docs/dev-contracts.md)**（模块间 API 单一真源）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
+| 验收文档 | **[docs/device-verification.md](docs/device-verification.md)**（真机验证清单）+ **[docs/interop-testing.md](docs/interop-testing.md)**（与 Linux `wg` 互操作验收） |
+| 实现状态 | 数据面（C：BLAKE2s/HMAC/ChaCha20-Poly1305/X25519 + Noise IK 握手 + 传输 + 定时器 + NAPI + 启动 KAT）与全部功能页面（列表/详情/编辑器/导入/设置/日志/隐私）已实现；本地单测 117 例全绿、`make build` 可打包签名 HAP；**真机与互操作验收未完成**（见验收文档；真机已发现并修掉 1 处平台限制，见 [docs/decisions/0008](docs/decisions/0008-arkts-x25519-self-implemented.md)） |
 | bundleName | `me.graycarl.wireguard` |
 | 平台 | HarmonyOS（纯鸿蒙，`runtimeOS: HarmonyOS`，非兼容模式） |
 | SDK | 6.1.1(24)，target/compatible 均为 24 |
@@ -46,40 +48,39 @@ spec / handbook 是验收基准，代码行为与 spec 冲突时以 spec 为准�
 
 ## 仓库结构
 
-当前是 **VPN 编译基座**（vpn extensionAbility + INTERNET 权限 + cpp NAPI 空壳已打通编译打包），业务代码尚未开始：
+业务代码已实现（详见下方目录与 [docs/dev-contracts.md](docs/dev-contracts.md)）：
 
 ```
 AppScope/            # 应用级配置（app.json5: bundleName/版本/图标）
 entry/               # 主模块（type: entry）
   src/main/ets/
-    entryability/    # EntryAbility.ets（UIAbility 入口）
+    entryability/    # EntryAbility.ets（UIAbility 入口；初始化 Logger/主题/AppStore）
     entrybackupability/
-    pages/Index.ets  # 首页占位（后续替换为隧道列表页）
-  src/main/cpp/          # 数据面原生层（CMake + NAPI 空壳，见 docs/decisions/0001）
-  src/main/module.json5   # 模块配置：abilities、vpn extensionAbility、requestPermissions(INTERNET)
+    config/          # wg-quick 解析/序列化/校验（纯 ArkTS，可本地单测）
+    crypto/          # base64/hex、Key/KeyPair、BLAKE2s、HKDF（镜像实现，KAT 对照）
+                     # + X25519 纯 ArkTS 实现（RFC 7748 KAT；cryptoFramework by-spec 不可用，见决策 0008）
+    model/           # 隧道领域模型（TunnelState/PeerStats/Tunnel）
+    repo/            # tunnels.json 持久化（FileIO 注入 + TunnelRepository，纯逻辑）
+    store/           # AppStore（UI 唯一入口）+ RecordMapper（Config ↔ TunnelRecord）
+    backend/         # Backend（单激活互斥/切换回滚）、VpnController（vpnExtension 薄封装+错误映射）、
+                     # AuthGuard（锁屏认证）、PrivacyMode（防截屏）、IpcProtocol（公共事件）
+    platform/        # FsFileIO（原子写）、PreferencesStore（主题）、NativeBridge（NAPI 薄封装）
+    util/            # Logger/Format/Toast/Clipboard/FileUtil/RouteParams/TunnelDisplay（尽量纯，可单测）
+    services/        # ImportService/ImportLogic（文件·zip·二维码·图片二维码导入）
+    components/      # 复用 UI 片段（列表项/开关/卡片/应用过滤/命名对话框等）
+    pages/           # Index（Navigation 宿主）/ 列表 / 详情 / 编辑器 / 设置 / 日志 / 扫码 + RouteStack
+    vpnability/      # WgVpnAbility.ets（VPN 进程：建虚拟网卡、下发数据面、发公共事件）
+  src/main/cpp/          # C 数据面（原语/握手/传输/定时器/NAPI/KAT/hosttest，见 docs/decisions/0001-0002）
+  src/main/module.json5   # abilities、vpn extensionAbility、requestPermissions(INTERNET/CAMERA/PRIVACY_WINDOW/ACCESS_BIOMETRIC)
   src/main/resources/     # base/dark 资源（string/color/float/media）
   src/test/               # 本地单测（hypium，跑在宿主 JVM/Node 模拟环境）
   src/ohosTest/           # 设备侧集成测试
 build-profile.json5  # 应用级构建配置（products/签名/SDK 版本）
-oh-package.json5     # 依赖声明（当前无三方依赖，仅 devDeps: hypium, hamock）
+oh-package.json5     # 依赖声明（devDeps: hypium/hamock；entry 模块另有 libentry.so 本地依赖）
 specs/               # 功能规格（用户视角，写代码前必须先写，见「开发流程规范」）
 handbook/            # 用户使用说明书（HTML + 内联 SVG 截图）
-docs/                # 开发资料索引与 decisions/ 技术决策记录
-```
-
-**规划中的目录结构**（动手时按此分层，详见下方「核心设计决策」）：
-
-```
-entry/src/main/ets/
-  config/       # wg-quick 解析（Config/Interface/Peer/InetAddresses/InetNetwork/InetEndpoint）
-  crypto/       # Key/KeyPair/BLAKE2s 等（纯算法，可本地单测）
-  model/        # 隧道领域模型 + 快照
-  repo/         # 配置持久化（Preferences / 文件 / RDB）
-  store/        # 全局状态（AppStorageV2 单例）
-  pages/        # 隧道列表 / 编辑 / 详情
-  components/   # 复用 UI 片段
-  backend/      # ArkTS 侧隧道控制（对应上游 Backend/Tunnel 抽象）
-  vpnability/   # VpnExtensionAbility 实现（type: vpn）
+docs/                # 资料索引、decisions/（技术决策）、dev-contracts.md（模块 API 单一真源）、
+                     # device-verification.md（真机清单）、interop-testing.md（互操作用例）
 ```
 
 注意：仓库内**没有 `hvigorw` 脚本**，但 DevEco Studio 内置工具链支持命令行编译（见下节）；
@@ -106,13 +107,20 @@ entry/src/main/ets/
 已封装进根目录 `Makefile`（底层调用 DevEco Studio 内置工具链，无需打开 IDE）：
 
 ```bash
-make build        # 编译 + 打包 debug HAP（未签名，产物在 entry/build/default/outputs/）
+make build        # 编译 + 打包 debug HAP（产物在 entry/build/default/outputs/；本机配好签名即出 *-signed.hap）
 make test         # 跑 LocalUnit 单测（hypium，entry/src/test）
 make ohpm-install # 拉取 ohpm 依赖（首次 make test 前必需；test 目标已内置缺失检测）
+make sign-import  # 把 DevEco Studio 写进 build-profile.json5 的签名材料搬到本机文件并还原之
+make sign-status  # 查看签名材料来源（仓库是否干净 / 材料文件是否存在）
 make help         # 列出全部目标
 ```
 
-- 签名需在 DevEco Studio 里配置后才可装真机；未签名时 SignHap WARN 跳过，可忽略
+- **签名材料不入库**：`build-profile.json5` 里 `app.signingConfigs` 恒为 `[]`（入库的是 products/
+  SDK/buildModeSet/modules），本机材料放**已 gitignore** 的 `signing-config.local.json`，由
+  `hvigorfile.ts` 经 `config.ohos.overrides.signingConfig` 注入（详见 AGENTS 已知坑）。
+  未配签名时 SignHap WARN 跳过、只产出 unsigned HAP，不影响编译验证。
+- 在 DevEco Studio 里改签名（Project Structure > Signing Configs > Apply）会把 `build-profile.json5`
+  写脏 → 跑一次 `make sign-import` 搬运 + 还原，仓库保持零签名材料。
 - 环境变量（DEVECO_SDK_HOME / JAVA_HOME / PATH）由 Makefile 自动设置，无需手动导出
 - 若本机 DevEco Studio 不在 `/Applications/DevEco-Studio.app`，改 Makefile 顶部路径
 - ⚠️ **`make test` 的假绿**：hypium 用例失败时 hvigor 仍可能打印 `BUILD SUCCESSFUL`，
@@ -143,7 +151,10 @@ make help         # 列出全部目标
 
 ## 核心设计决策
 
-> 项目早期填充。以下 1–4 条已由 SDK/官方文档核实（见括号内证据），动手前请遵守。
+> 以下 1–4 条为 SDK/官方文档核实过的架构约束（见括号内证据），动手前请遵守。
+> 完整技术决策（数据面自研、握手分层、持久化、进程通信、生命周期、单激活、测试策略）见
+> [docs/decisions/0001–0007](docs/decisions/)；模块间 API 的单一真源见
+> [docs/dev-contracts.md](docs/dev-contracts.md)（实现与契约冲突时先改契约再改代码）。
 
 ### 1. 数据面必须在原生层，ArkTS 只做控制面（关键，决定整个架构）
 
@@ -183,7 +194,8 @@ make help         # 列出全部目标
 - **纯算法/纯逻辑要自实现或依赖注入**（可 100% 本地测）：wg-quick 解析、base64/hex 编解码、
   BLAKE2s、HKDF、配置 diff、路由表计算 —— 全部放进不 import `@kit` 的纯 ArkTS 模块；
 - **平台原语只做成薄封装**（几行 `cryptoFramework`/`vpnExtension` 调用）并列进真机验证清单：
-  X25519 协商、ChaCha20-Poly1305、Keystore 私钥、socket、tun fd 读写。
+  ChaCha20-Poly1305、Keystore 私钥、socket、tun fd 读写、锁屏认证、防截屏。
+  （X25519 **已因平台限制改为纯 ArkTS 自实现**并进本地 KAT，不再属于平台原语，见决策 0008。）
 
 **SDK 事实（已核实）**：`@ohos.security.cryptoFramework` 提供 `ChaCha20`（含 Poly1305 模式）、
 `X25519`、`HKDF`；**不提供 BLAKE2s**（ArkTS 与 NDK `CryptoArchitectureKit/` 均无，消息摘要只有 SHA256/MD5/SHA3）。
@@ -277,8 +289,21 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
   → 用 `new Uint8Array(buffer.from(s,'utf-8').buffer)`。
 - **`sys.media.*` / `sys.color.*` 里看似通用的名字可能是 private**：如 `ohos_ic_public_settings`
   在 `toolchains/id_defined.json` 中不存在（编译报 Unknown resource name）→ 先去该文件 grep 合法符号。
-- **模板工程不要带他人的签名材料绝对路径**：`build-profile.json5` 留 `"signingConfigs": []` 即可正常构建
-  （只 WARN），签名由用户在 DevEco Studio 里配置。
+- **`build-profile.json5` 入库、签名材料不入库**：该文件必须提交（products/SDK/buildModeSet/modules 是
+  构建单一真源），但 `app.signingConfigs` 是 DevEco Studio 写进去的**本机绝对路径 + 加密口令**，提交了
+  别人 clone 下来必错。本项目做法：仓库里留 `"signingConfigs": []`，材料放 gitignore 的
+  `signing-config.local.json`，再由 `hvigorfile.ts` 注入；DevEco GUI 写脏后跑 `make sign-import` 搬运还原
+  （脚本 `scripts/sign-config.mjs`）。
+- **hvigor 注入签名配置的位置是 `config.ohos.overrides.signingConfig`，不是顶层 `overrides`**：
+  `hvigorfile.ts` 导出 `{ system, plugins, config: { ohos: { overrides: {...} } } }`
+  （hvigor 内部 `parseConfig(node, defaultExport.config)` → `getConfigOpt().getObject('ohos')`）。
+  该对象**只允许 `material` / `type` 两个键**——多带 `name` 直接 `00303038 Schema validate failed`
+  （报错 instancePath `/overrides/signingConfig`，params 里会列出 allowedValues，好在报错指向 hvigorfile.ts，
+  但不说清是哪个字段多余）。生效判据：日志出现 `Finished :entry:default@SignHap` + 产出 `*-signed.hap`
+  （反之是 `Will skip sign 'hos_hap'`）。口令必须是 DevEco 加密后的十六进制串（密钥来自 `~/.ohos/config/material/`，
+  hvigor 用 `DecipherUtil` 解密），**换成明文口令会报 INVALID_DATA**。
+- **改 hvigorfile.ts 后 hvigor 会重新读取签名配置**：`SignHap` 不再 UP-TO-DATE；删掉 `*-signed.hap` 再
+  `make build` 即可强制重签，比 `make clean` 全量重建快得多。
 - `js-apis-*` 旧命名页面多为子页面索引（几 KB 的链接列表），
   `arkts-apis-*` 新命名页面才有完整 API 正文。
 - **ArkTS 严格模式编译坑**：禁 `as const`；禁 `unknown` 类型转换（错误对象
@@ -330,7 +355,34 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
   `Connect OK`，判断是否连上要看 `hdc list targets` 里有没有 `IP:port`；
   ② 设备侧 ICMP 常被封，`ping` 不通不代表不在线。
 
+- **`@Param` + `ForEach` 复用不刷新子组件**（ArkUI 已知限制）：列表项的连接状态/统计不要父→子透传
+  （`@Param` 不会随 `ForEach` 复用更新）→ 子组件自订阅 `AppStore`（`@Local` + 变更检测），
+  或用 `@ObservedV2` 单例 + `@Trace`。本项目 `components/TunnelSwitch.ets`、`PeerCard.ets`、`ListSelection.ets` 是范例。
+- **ArkTS 严格模式 × Navigation 路由**：`pathStack.pushPath({ name, param })` 报
+  `arkts-no-untyped-obj-literals`（`NavPathInfo` 是组件声明的 class）→ 用 `new NavPathInfo(name, param)`；
+  `@Param param: object = {}` 同样非法 → 用显式类实例（本项目 `pages/RouteStack.ets` 的
+  `EmptyParam/EditorParam`，所有页面参数契约集中在那里）。
+- **未被引用的 .ets 不会被编译**：新骨架文件（占位页、RouteStack）在接入引用前编译错误不会暴露，
+  一旦被 `Index.ets` 引用就集中报错 → 新文件要尽早接入引用并 `make build` 验证。
+- **改了依赖声明必须重跑 `make ohpm-install`**：新增 `libentry.so` 本地依赖（或任何 `oh-package.json5` 变更）后
+  不重跑，类型声明会退化为 `any`，报错是 `arkts-no-any-unknown`，指向的文件看起来毫不相关（如 NativeBridge.ets）。
+- **`sys.media.*` 无设置/齿轮图标，SDK 无 `sys.symbol.*`**：设置入口用文字按钮；图标一律先
+  在 `toolchains/id_defined.json` grep 到合法符号再用（已有条目的补充）。
+- **userAuth 回调类型是 `IAuthCallback`（`onResult`）**：写成 `instance.on('result', fn)` 编译不过；
+  无认证能力设备应在 `getAvailableStatus` 判断后直接放行（本项目 `backend/AuthGuard.ets` 已处理）。
+
 ### 本项目特有（WireGuard / VPN 方向）
+
+- **VPN 授权拒绝与「已有 VPN 占用」的错误码**：`VpnConnection.create()` 的 `2203001`（用户未授权）/
+  `2203002`（已有其他 VPN）必须分别映射 spec 文案；`startVpnExtensionAbility` 的
+  401/16000001/16000002/16000011/16000006/16000050/16200001 归入「无法启动 VPN 服务」。
+- **普通应用无法枚举已安装应用**：`getBundleInfo`/`getLauncherAbilityInfo` 需
+  `GET_BUNDLE_INFO_PRIVILEGED`（system_basic，拿不到），SDK 也无 `getAllBundleInfo` →
+  「应用过滤」对话框固定走空态「未找到可用应用」（spec tunnel-editor.md 已定案）；
+  平台开放后只需改 `components/AppCatalog.ets`。
+- **自定义公共事件是 UI 进程 ↔ VPN 进程的唯一上行通道**（决策 0004）：事件名
+  `me.graycarl.wireguard.event.TUNNEL`，payload 走 `CommonEventPublishData.data`（JSON 字符串），
+  **绝不含密钥/配置**；进程内 Emitter/AppStorage 均不可跨进程，不要误用。
 
 - **`externalNativeOptions` 必须放在模块 `build-profile.json5` 的 `buildOption` 内**：放根部会被 hvigor
   schema 拒绝（报错只列 allowedValues，不提示正确位置）。
@@ -346,3 +398,9 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
   保活/重连策略要基于这个事实设计，不能假设后台常驻。
 - **BLAKE2s 不在鸿蒙密码框架内**（ArkTS 与 NDK 都没有）：WireGuard 握手/传输密钥派生依赖它，
   必须自实现；不要试图用 HMAC-SHA256 顶替（协议不兼容，无法与对端互通）。
+- **`cryptoFramework` 的 X25519「按 spec 生成密钥对」在真机上不可用**：
+  `createAsyKeyGeneratorBySpec({algName:'X25519', sk: <bigint>})` 在设备上直接失败，hilog 报
+  `Class is not match. expect class: OPENSSL.ED25519.KEYGENERATOR, input class: OPENSSL.X25519.KEYGENERATOR`
+  → `generateKeyPairSync()` 抛错（本地单测是空桩，永远测不出来）。
+  公钥派生已改为**纯 ArkTS X25519**（`crypto/X25519.ets`，Montgomery ladder + RFC 7748 官方向量本地 KAT）。
+  若后续要用平台 X25519：先真机验证该 API，别信 d.ts 声明齐全就当可用。
