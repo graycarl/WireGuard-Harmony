@@ -10,11 +10,18 @@
 
 import { TunnelSwitch } from './TunnelSwitch';
 import { listSelection } from './ListSelection';
+import { screenState } from './ScreenState';
+import { Dimens } from '../util/ScreenMode';
 
 @ComponentV2
 export struct TunnelListItem {
   @Param name: string = '';
   @Event onOpen: (name: string) => void = (name: string) => {};
+
+  /** 尺寸档位（build 中调用以读取 @Trace 依赖，决策 0009）。 */
+  private get d(): Dimens {
+    return new Dimens(screenState.compact);
+  }
 
   build() {
     Row({ space: 12 }) {
@@ -26,7 +33,7 @@ export struct TunnelListItem {
           .enabled(false)
       }
       Text(this.name)
-        .fontSize(17)
+        .fontSize(this.d.compact ? 15 : 17)
         .fontColor($r('app.color.text_primary'))
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -36,8 +43,8 @@ export struct TunnelListItem {
       }
     }
     .width('100%')
-    .height(56)
-    .padding({ left: 16, right: 16 })
+    .height(this.d.rowHeight)
+    .padding({ left: this.d.pagePadding, right: this.d.pagePadding })
     .backgroundColor(listSelection.active && listSelection.has(this.name) ? $r('app.color.accent_tint') : Color.Transparent)
     .onClick(() => {
       if (listSelection.active) {

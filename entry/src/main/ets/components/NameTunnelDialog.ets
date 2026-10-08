@@ -6,6 +6,8 @@
  * openCustomDialog + ComponentContent 以弹窗形式打开（API 12+ 推荐用法）。
  */
 import { ComponentContent, UIContext } from '@kit.ArkUI';
+import { screenState } from './ScreenState';
+import { Dimens } from '../util/ScreenMode';
 
 /** 命名对话框参数与回调。 */
 export class NameDialogOptions {
@@ -25,12 +27,17 @@ export struct NameTunnelDialog {
   @Local name: string = '';
   @Local error: string = '';
 
+  /** 尺寸档位（build 中调用以读取 @Trace 依赖，决策 0009）。 */
+  private get d(): Dimens {
+    return new Dimens(screenState.compact);
+  }
+
   aboutToAppear(): void {
     this.name = this.options.initialName;
   }
 
   build() {
-    Column({ space: 14 }) {
+    Column({ space: this.d.compact ? 10 : 14 }) {
       Text(this.options.title)
         .fontSize(18)
         .fontWeight(FontWeight.Bold)
@@ -72,7 +79,7 @@ export struct NameTunnelDialog {
       .width('100%')
     }
     .width('100%')
-    .padding(20)
+    .padding(this.d.compact ? 14 : 20)
     .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
     .borderRadius(16)
   }

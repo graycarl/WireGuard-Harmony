@@ -41,9 +41,10 @@ import { KeyPair } from '../crypto/KeyPair';
 import { Logger } from '../util/Logger';
 import { Toast } from '../util/Toast';
 import { Clipboard } from '../util/Clipboard';
+import { screenState } from '../components/ScreenState';
+import { Dimens } from '../util/ScreenMode';
 import { editorParamName, goBack, replaceWithDetail } from './RouteStack';
 
-const LABEL_WIDTH: number = 92;
 const FIELD_LABEL_SIZE: number = 15;
 
 @ComponentV2
@@ -287,6 +288,11 @@ export struct TunnelEditorPage {
     return formSignature(this.interfaceDraft(), this.peerDrafts()) !== this.originalSignature;
   }
 
+  /** 尺寸档位（build/@Builder 中调用以读取 @Trace 依赖，决策 0009）。 */
+  private get d(): Dimens {
+    return new Dimens(screenState.compact);
+  }
+
   private onBack(): void {
     if (!this.isDirty()) {
       goBack();
@@ -353,7 +359,7 @@ export struct TunnelEditorPage {
           this.onBack();
         })
       Text(this.originalName === null ? '创建 WireGuard 隧道' : `编辑 ${this.tunnelName}`)
-        .fontSize(18)
+        .fontSize(this.d.headerFont)
         .fontWeight(FontWeight.Medium)
         .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
@@ -370,8 +376,8 @@ export struct TunnelEditorPage {
         })
     }
     .width('100%')
-    .height(56)
-    .padding({ left: 16, right: 16 })
+    .height(this.d.titleBarHeight)
+    .padding({ left: this.d.pagePadding, right: this.d.pagePadding })
   }
 
   @Builder
@@ -392,7 +398,7 @@ export struct TunnelEditorPage {
       Row() {
         Text('名称')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         TextInput({ text: this.tunnelName, placeholder: '仅字母/数字/._=+-，最长 15' })
           .layoutWeight(1)
           .maxLength(15)
@@ -401,13 +407,13 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // 私钥 + 生成
       Row() {
         Text('私钥')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         TextInput({ text: this.privateKey, placeholder: '44 字符 Base64 密钥' })
           .layoutWeight(1)
           .maxLength(44)
@@ -427,13 +433,13 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // 公钥（只读派生 + 点击复制）
       Row() {
         Text('公钥')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         Text(this.publicKey.length > 0 ? this.publicKey : '（生成）')
           .fontSize(14)
           .layoutWeight(1)
@@ -446,13 +452,13 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // 局域网 IP 地址
       Row() {
         Text('局域网 IP 地址')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         TextInput({ text: this.addressesText, placeholder: '10.0.0.2/32, fc00::2/128' })
           .layoutWeight(1)
           .onChange((value: string) => {
@@ -460,13 +466,13 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // 监听端口
       Row() {
         Text('监听端口')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         TextInput({ text: this.listenPortText, placeholder: '（随机）' })
           .layoutWeight(1)
           .type(InputType.Number)
@@ -475,13 +481,13 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // DNS 服务器
       Row() {
         Text('DNS 服务器')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         TextInput({ text: this.dnsText, placeholder: '1.1.1.1, example.com' })
           .layoutWeight(1)
           .onChange((value: string) => {
@@ -489,13 +495,13 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // MTU
       Row() {
         Text('MTU')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         TextInput({ text: this.mtuText, placeholder: '（自动）' })
           .layoutWeight(1)
           .type(InputType.Number)
@@ -504,13 +510,13 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // 应用过滤
       Row() {
         Text('应用过滤')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         Button(this.filterButtonLabel())
           .layoutWeight(1)
           .fontSize(14)
@@ -529,10 +535,10 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
     }
     .width('100%')
-    .padding(12)
+    .padding(this.d.editorCardPadding)
     .backgroundColor($r('app.color.card_bg'))
     .borderRadius(12)
   }
@@ -559,7 +565,7 @@ export struct TunnelEditorPage {
       Row() {
         Text('公钥')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         // 对端公钥不是敏感信息：specs/tunnel-editor.md 只要求预共享密钥/本机私钥遮蔽。
         TextInput({ text: this.peers[index].publicKey, placeholder: '44 字符 Base64 密钥' })
           .layoutWeight(1)
@@ -570,13 +576,13 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // 预共享密钥
       Row() {
         Text('预共享密钥')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         TextInput({ text: this.peers[index].presharedKey, placeholder: '（可选）' })
           .layoutWeight(1)
           .maxLength(44)
@@ -589,13 +595,13 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // 连接保活间隔
       Row() {
         Text('连接保活间隔')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         TextInput({ text: this.peers[index].keepaliveText, placeholder: '（可选，不建议设置）' })
           .layoutWeight(1)
           .type(InputType.Number)
@@ -607,13 +613,13 @@ export struct TunnelEditorPage {
           .margin({ left: 8 })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // 对端
       Row() {
         Text('对端')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         TextInput({ text: this.peers[index].endpointText, placeholder: 'vpn.example.com:51820' })
           .layoutWeight(1)
           .onChange((value: string) => {
@@ -621,13 +627,13 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // 路由的 IP 地址（段）
       Row() {
         Text('路由的 IP 地址（段）')
           .fontSize(FIELD_LABEL_SIZE)
-          .width(LABEL_WIDTH)
+          .width(this.d.editorLabelWidth)
         TextInput({ text: this.peers[index].allowedIPsText, placeholder: '0.0.0.0/0, ::/0' })
           .layoutWeight(1)
           .onChange((value: string) => {
@@ -635,7 +641,7 @@ export struct TunnelEditorPage {
           })
       }
       .width('100%')
-      .padding({ top: 6, bottom: 6 })
+      .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
 
       // 排除局域网（条件显示）
       if (isExcludeLanApplicable(splitListText(this.peers[index].allowedIPsText), this.peers.length)) {
@@ -650,11 +656,11 @@ export struct TunnelEditorPage {
             })
         }
         .width('100%')
-        .padding({ top: 6, bottom: 6 })
+        .padding({ top: this.d.editorRowVPad, bottom: this.d.editorRowVPad })
       }
     }
     .width('100%')
-    .padding(12)
+    .padding(this.d.editorCardPadding)
     .backgroundColor($r('app.color.card_bg'))
     .borderRadius(12)
   }
@@ -677,7 +683,7 @@ export struct TunnelEditorPage {
             })
         }
         .width('100%')
-        .padding({ left: 12, right: 12, top: 8, bottom: 32 })
+        .padding({ left: this.d.editorCardPadding, right: this.d.editorCardPadding, top: 8, bottom: 32 })
       }
       .layoutWeight(1)
       .scrollBar(BarState.Auto)

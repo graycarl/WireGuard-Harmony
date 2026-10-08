@@ -9,6 +9,7 @@ import tunnelDisplayTest from './TunnelDisplay.test';
 import editorUtilsTest from './EditorUtils.test';
 import importLogicTest from './ImportLogic.test';
 import x25519Test from './X25519.test';
+import screenModeTest from './ScreenMode.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -22,4 +23,5 @@ export default function testsuite() {
   editorUtilsTest();
   importLogicTest();
   x25519Test();
+  screenModeTest();
 }

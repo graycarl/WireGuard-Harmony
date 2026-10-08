@@ -265,3 +265,20 @@ onDestroy：停定时器 → `stopTunnel()` → `vpnConnection.destroy()` → �
 - 真机不可验的能力（userAuth、vpnExtension、防截屏、扫码）写进
   `docs/device-verification.md` 清单（收尾任务统一整理）。
   （X25519 公钥派生已自实现并进本地 KAT，不再是真机项，见决策 0008。）
+
+## 14. 屏幕紧凑模式契约（specs/cover-screen.md、决策 0009）
+
+- **判定（纯逻辑，`util/ScreenMode.ets`，进本地单测）**：
+  `isCompactWindow(widthVp, heightVp): boolean`——高度 < 560vp 或 宽度 < 360vp 即紧凑；
+  阈值常量 `COMPACT_MAX_HEIGHT_VP` / `COMPACT_MAX_WIDTH_VP`。
+  尺寸档位 `new Dimens(compact)`：pagePadding/titleBarHeight/rowHeight/titleFont/headerFont/
+  fieldLabelWidth/editorLabelWidth/cardPadding/fieldRowVPad/editorRowVPad/editorCardPadding/
+  fabSize/fabMargin；**页面不得散落紧凑魔法数**，新增尺寸一律进 `Dimens`。
+- **状态分发**：`components/ScreenState.ets` 导出 `@ObservedV2` 单例 `screenState`
+  （`@Trace compact: boolean`；`update(widthVp, heightVp)` 仅在档位变化时写入）。
+  页面/组件在 build/@Builder 中经 `new Dimens(screenState.compact)` 取用
+  （@Trace 依赖必须在渲染期间读取才被跟踪，不集中缓存 Dimens 实例）。
+- **唯一测量点**：`Index.ets` Navigation 根 `onAreaChange`（vp）→ `screenState.update`；
+  其他组件不得再挂测量回调。
+- **module.json5**：EntryAbility 声明 `supportWindowMode: [fullscreen, split, floating]`、
+  `minWindowWidth: 320`、`minWindowHeight: 240`（小窗口/外屏可用性）。

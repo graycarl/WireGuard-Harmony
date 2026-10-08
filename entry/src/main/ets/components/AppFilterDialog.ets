@@ -6,6 +6,8 @@
  */
 
 import { AppOption } from './AppCatalog';
+import { screenState } from './ScreenState';
+import { Dimens } from '../util/ScreenMode';
 
 @ComponentV2
 export struct AppFilterDialog {
@@ -21,6 +23,11 @@ export struct AppFilterDialog {
 
   @Local mode: string = 'excluded';
   @Local selected: string[] = [];
+
+  /** 尺寸档位（build/@Builder 中调用以读取 @Trace 依赖，决策 0009）。 */
+  private get d(): Dimens {
+    return new Dimens(screenState.compact);
+  }
 
   aboutToAppear(): void {
     this.mode = this.initialMode === 'included' ? 'included' : 'excluded';
@@ -104,7 +111,7 @@ export struct AppFilterDialog {
           }, (app: AppOption) => app.bundleName)
         }
         .width('100%')
-        .padding({ left: 16, right: 16 })
+        .padding({ left: this.d.pagePadding, right: this.d.pagePadding })
       }
       .layoutWeight(1)
       .scrollBar(BarState.Auto)
@@ -149,7 +156,7 @@ export struct AppFilterDialog {
           })
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 12, bottom: 16 })
+      .padding({ left: this.d.pagePadding, right: this.d.pagePadding, top: 12, bottom: 16 })
     }
     .width('100%')
     .height('100%')

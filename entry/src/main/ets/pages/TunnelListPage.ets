@@ -14,6 +14,8 @@ import { AppStore } from '../store/AppStore';
 import { TunnelRecord } from '../repo/TunnelRecord';
 import { TunnelListItem } from '../components/TunnelListItem';
 import { listSelection } from '../components/ListSelection';
+import { screenState } from '../components/ScreenState';
+import { Dimens } from '../util/ScreenMode';
 import { ImportService } from '../services/ImportService';
 import { Toast } from '../util/Toast';
 import { goDetail, goEditor, goSettings, pathStack } from './RouteStack';
@@ -112,6 +114,11 @@ export struct TunnelListPage {
     return false;
   }
 
+  /** 尺寸档位（build/@Builder 中调用以读取 @Trace 依赖，决策 0009）。 */
+  private get d(): Dimens {
+    return new Dimens(screenState.compact);
+  }
+
   private selectAll(): void {
     const names: string[] = [];
     for (const record of this.records) {
@@ -163,7 +170,7 @@ export struct TunnelListPage {
   TitleBar() {
     Row() {
       Text('WireGuard')
-        .fontSize(24)
+        .fontSize(this.d.titleFont)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
@@ -177,8 +184,8 @@ export struct TunnelListPage {
         })
     }
     .width('100%')
-    .height(56)
-    .padding({ left: 16, right: 4 })
+    .height(this.d.titleBarHeight)
+    .padding({ left: this.d.pagePadding, right: 4 })
   }
 
   @Builder
@@ -205,8 +212,8 @@ export struct TunnelListPage {
         })
     }
     .width('100%')
-    .height(56)
-    .padding({ left: 16, right: 4 })
+    .height(this.d.titleBarHeight)
+    .padding({ left: this.d.pagePadding, right: 4 })
   }
 
   @Builder
@@ -223,7 +230,7 @@ export struct TunnelListPage {
           .fontColor($r('app.color.text_primary'))
       }
       .width('100%')
-      .height(56)
+      .height(this.d.rowHeight)
       .onClick(() => {
         this.showAddSheet = false;
         this.importFromFile();
@@ -235,7 +242,7 @@ export struct TunnelListPage {
             .fontColor($r('app.color.text_primary'))
         }
         .width('100%')
-        .height(56)
+        .height(this.d.rowHeight)
         .onClick(() => {
           this.showAddSheet = false;
           this.importFromScan();
@@ -247,14 +254,14 @@ export struct TunnelListPage {
           .fontColor($r('app.color.text_primary'))
       }
       .width('100%')
-      .height(56)
+      .height(this.d.rowHeight)
       .onClick(() => {
         this.showAddSheet = false;
         goEditor();
       })
     }
     .width('100%')
-    .padding({ left: 24, right: 24, bottom: 16 })
+    .padding({ left: this.d.pagePadding + 8, right: this.d.pagePadding + 8, bottom: 16 })
   }
 
   @Builder
@@ -272,13 +279,13 @@ export struct TunnelListPage {
   @Builder
   AddButton() {
     Button('+')
-      .width(56)
-      .height(56)
-      .borderRadius(28)
-      .fontSize(28)
+      .width(this.d.fabSize)
+      .height(this.d.fabSize)
+      .borderRadius(this.d.fabSize / 2)
+      .fontSize(this.d.compact ? 24 : 28)
       .fontColor($r('app.color.on_accent'))
       .backgroundColor($r('app.color.accent'))
-      .margin({ right: 24, bottom: 24 })
+      .margin({ right: this.d.fabMargin, bottom: this.d.fabMargin })
       .onClick(() => {
         this.showAddSheet = true;
       })
@@ -309,8 +316,9 @@ export struct TunnelListPage {
           }
           .width('100%')
           .height('100%')
-          .contentEndOffset(88)
-          .divider({ strokeWidth: 1, color: $r('app.color.divider'), startMargin: 16, endMargin: 16 })
+          .contentEndOffset(this.d.fabSize + this.d.fabMargin + 8)
+          .divider({ strokeWidth: 1, color: $r('app.color.divider'),
+            startMargin: this.d.pagePadding, endMargin: this.d.pagePadding })
         }
         if (!listSelection.active) {
           this.AddButton()

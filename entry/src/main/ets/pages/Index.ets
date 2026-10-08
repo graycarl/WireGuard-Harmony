@@ -8,6 +8,7 @@
  */
 
 import { AppStore } from '../store/AppStore';
+import { screenState } from '../components/ScreenState';
 import { ImportService } from '../services/ImportService';
 import { paramAsTunnelName } from '../util/RouteParams';
 import { ListBackHandler, TunnelListPage } from './TunnelListPage';
@@ -76,5 +77,10 @@ struct Index {
     .hideToolBar(true)
     .backgroundColor($r('app.color.page_bg'))
     .ignoreLayoutSafeArea([LayoutSafeAreaType.SYSTEM], [LayoutSafeAreaEdge.BOTTOM])
+    // 紧凑模式唯一测量点（决策 0009）：窗口尺寸（vp）变化驱动全局 screenState，
+    // 覆盖折叠/展开、横竖屏、小窗缩放等一切窗口变化。
+    .onAreaChange((oldValue: Area, newValue: Area) => {
+      screenState.update(newValue.width as number, newValue.height as number);
+    })
   }
 }

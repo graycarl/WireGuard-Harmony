@@ -11,6 +11,8 @@ import { Logger } from '../util/Logger';
 import { errorMessage } from '../util/FileUtil';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { EmptyParam } from './RouteStack';
+import { screenState } from '../components/ScreenState';
+import { Dimens } from '../util/ScreenMode';
 
 @ComponentV2
 export struct LogPage {
@@ -21,6 +23,11 @@ export struct LogPage {
   private logListener: () => void = (): void => {
     this.reload();
   };
+
+  /** 尺寸档位（build 中调用以读取 @Trace 依赖，决策 0009）。 */
+  private get d(): Dimens {
+    return new Dimens(screenState.compact);
+  }
 
   aboutToAppear(): void {
     this.reload();
@@ -67,7 +74,7 @@ export struct LogPage {
           })
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+      .padding({ left: this.d.pagePadding, right: this.d.pagePadding, top: 8, bottom: 8 })
 
       if (this.logs.length === 0) {
         Column() {
@@ -89,7 +96,7 @@ export struct LogPage {
                 .textAlign(TextAlign.Start)
                 .width('100%')
             }
-            .padding({ left: 12, right: 12, top: 2, bottom: 2 })
+            .padding({ left: this.d.pagePadding, right: this.d.pagePadding, top: 2, bottom: 2 })
           }, (line: string, index: number) => `${index}-${line}`)
         }
         .width('100%')

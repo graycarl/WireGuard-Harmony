@@ -183,6 +183,23 @@
 | [应用/元服务签名](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-signing) | 配置签名证书（真机运行前置条件） |
 | [真机运行](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-run-device) | 连接设备运行调试 |
 
+## 折叠屏与外屏适配（Pura X）
+
+| 资料 | 何时查阅 |
+|---|---|
+| [Pura X 常见问题（官方 FAQ）](https://developer.huawei.com/consumer/cn/doc/harmonyos-faqs/faqs-purax-1) | 外屏适配申请审核等；SPA 站裸 URL 无正文，走 Context7 / 搜索引擎缓存 |
+| [Pura X Max 适配官方指南](https://developer.huawei.com/consumer/cn/newdevice/pura-x-max/) | 阔折叠适配总入口（设备特点、模拟器、云调试） |
+| 官方《折叠屏UX体验标准》《折叠屏应用开发指导》《Pura X外屏开发实践》 | 外屏适配验收依据（一多专区 / 设备场景专区，站内搜索标题） |
+
+**已核实的平台事实（2026，真机 + 官方渠道确认）**：
+- **外屏显示三方应用是白名单制**：完成外屏适配 → 上架应用市场 → 提交
+  「Pura X 外屏应用展示申请」→ 华为审核通过加白名单后，应用才能出现在外屏。
+  **本地 hdc 安装的开发版无法被添加到外屏**（系统设置里添加不了是预期行为）。
+- **外屏不支持本地真机调试**（官方问答）：外屏形态调试用 DevEco Studio 的
+  Pura X 模拟器（设备管理器下载）；Pura X Max 另有 AGC 云调试真机。
+- 外屏断点：横向 sm / 纵向 md（1:1 方形）；内外屏接续：外屏→内屏直接接续；
+  内屏→外屏默认亮屏锁定，解锁后已适配应用接续到外屏。
+
 ## 系统能力与其他
 
 | 资料 | 何时查阅 |

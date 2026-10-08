@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>折叠屏外屏使用 · WireGuard 用户手册</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="page-head">
+  <div class="crumb"><a href="index.html">手册首页</a> / 折叠屏外屏使用</div>
+  <h1>折叠屏外屏使用</h1>
+  <p class="lede">在华为 Pura X 等阔折叠手机上，不展开手机也能用 WireGuard：
+    应用在外屏（小正方形屏幕）上会自动换成更紧凑的布局，查看隧道、开关连接、
+    导入与编辑配置等全部功能都可以正常使用。</p>
+</header>
+
+<h2><span class="no">1</span>在外屏上打开应用</h2>
+<p>应用出现在外屏需要经过平台审核：应用完成外屏适配并上架应用市场后，
+还要通过华为的「外屏应用展示申请」审核。审核通过后，你就可以在系统的
+外屏应用管理里把 WireGuard 添加到外屏（路径以系统为准，通常在
+「设置 → 折叠屏 / 外屏」相关的应用管理里）。应用内不需要任何额外设置。</p>
+<div class="note">如果在外屏应用管理里看不到 WireGuard，说明当前版本还未通过
+外屏展示审核，请等待后续版本；手机内屏上的使用不受任何影响。</div>
+
+<h2><span class="no">2</span>外屏上的界面</h2>
+<p>在外屏上打开应用时，界面会自动进入<b>紧凑布局</b>：标题栏、行高、边距收紧，
+字号略缩小，一屏能看到更多内容。所有按钮、开关保持正常大小，可以可靠点按。</p>
+
+<figure class="shot">
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="外屏上的隧道列表示意图">
+  <rect x="0" y="0" width="300" height="300" rx="26" fill="#10141A"/>
+  <rect x="5" y="5" width="290" height="290" rx="21" fill="#F1F3F5"/>
+  <!-- 状态栏 -->
+  <text x="20" y="22" font-size="9" font-weight="600" fill="#182431">9:41</text>
+  <text x="238" y="21" font-size="8" font-weight="700" fill="#182431" text-anchor="end">VPN</text>
+  <g fill="#182431">
+    <rect x="252" y="14" width="2.4" height="6" rx="1"/><rect x="256" y="12" width="2.4" height="8" rx="1"/>
+    <rect x="260" y="10" width="2.4" height="10" rx="1"/>
+  </g>
+  <rect x="268" y="11" width="14" height="8" rx="2.4" fill="none" stroke="#182431"/>
+  <rect x="270" y="13" width="8" height="4" rx="1" fill="#182431"/>
+  <!-- 标题栏（紧凑：更低、更小字号） -->
+  <text x="15" y="56" font-size="16" font-weight="700" fill="#182431">WireGuard</text>
+  <text x="285" y="54" font-size="11" fill="#0A59F7" text-anchor="end">设置</text>
+  <!-- 隧道行 1（已连接） -->
+  <rect x="5" y="64" width="290" height="34" fill="#FFFFFF" opacity="0"/>
+  <text x="15" y="86" font-size="12" fill="#182431">office</text>
+  <rect x="252" y="73" width="30" height="16" rx="8" fill="#0A59F7"/>
+  <circle cx="274" cy="81" r="6" fill="#FFFFFF"/>
+  <line x1="15" y1="98" x2="285" y2="98" stroke="#DDE1E6" stroke-width="1"/>
+  <!-- 隧道行 2（未连接） -->
+  <text x="15" y="120" font-size="12" fill="#182431">home-nas</text>
+  <rect x="252" y="107" width="30" height="16" rx="8" fill="#C4CAD2"/>
+  <circle cx="260" cy="115" r="6" fill="#FFFFFF"/>
+  <line x1="15" y1="132" x2="285" y2="132" stroke="#DDE1E6" stroke-width="1"/>
+  <!-- 隧道行 3（长名称省略） -->
+  <text x="15" y="154" font-size="12" fill="#182431">backup-serv…</text>
+  <rect x="252" y="141" width="30" height="16" rx="8" fill="#C4CAD2"/>
+  <circle cx="260" cy="149" r="6" fill="#FFFFFF"/>
+  <!-- 浮动 + 按钮（缩小） -->
+  <circle cx="262" cy="248" r="19" fill="#0A59F7"/>
+  <text x="262" y="256" font-size="18" fill="#FFFFFF" text-anchor="middle">+</text>
+</svg>
+  <figcaption>外屏上的隧道列表：行距更紧凑，「+」按钮更小，全部操作可用。</figcaption>
+</figure>
+
+<div class="legend">
+  <div class="li"><span class="dot">1</span><span><b>紧凑标题栏</b>：比常规布局更低，「设置」入口不变。</span></div>
+  <div class="li"><span class="dot">2</span><span><b>隧道行</b>：名称过长时仍以省略号截断；点击行进详情、点开关连接/断开，与常规布局完全一致。</span></div>
+  <div class="li"><span class="dot">3</span><span><b>「+」按钮</b>：缩小尺寸并贴边，不会遮挡列表最后一行。</span></div>
+</div>
+
+<h2><span class="no">3</span>外屏上的常用操作</h2>
+<ol class="steps">
+  <li><b>开关隧道</b>：列表或详情页点开关即可，首次连接仍会弹出系统 VPN 授权框（系统弹窗，点「允许」）。</li>
+  <li><b>查看配置</b>：点隧道进入详情页，字段标签列会变窄，内容上下滑动查看；点击字段值复制。</li>
+  <li><b>编辑配置</b>：详情页点「编辑」。弹出键盘后如果看不到「保存」按钮，向上滑动页面即可到达。</li>
+  <li><b>导入配置</b>：「+」→「导入配置或压缩包」或「扫描二维码」（外屏上同样可调起相机扫码）。</li>
+  <li><b>设置与日志</b>：标题栏右侧「设置」进入，功能与常规布局一致。</li>
+</ol>
+
+<figure class="shot">
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="外屏上的隧道详情示意图">
+  <rect x="0" y="0" width="300" height="300" rx="26" fill="#10141A"/>
+  <rect x="5" y="5" width="290" height="290" rx="21" fill="#F1F3F5"/>
+  <text x="20" y="22" font-size="9" font-weight="600" fill="#182431">9:41</text>
+  <g fill="#182431">
+    <rect x="256" y="12" width="2.4" height="8" rx="1"/><rect x="260" y="10" width="2.4" height="10" rx="1"/>
+  </g>
+  <rect x="268" y="11" width="14" height="8" rx="2.4" fill="none" stroke="#182431"/>
+  <rect x="270" y="13" width="8" height="4" rx="1" fill="#182431"/>
+  <!-- 页头：返回 + 标题 + 编辑 -->
+  <path d="M22 44 l-7 7 7 7" stroke="#182431" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <text x="150" y="52" font-size="12" font-weight="700" fill="#182431" text-anchor="middle">office</text>
+  <text x="285" y="52" font-size="11" fill="#0A59F7" text-anchor="end">编辑</text>
+  <!-- 本地卡片 -->
+  <rect x="13" y="62" width="274" height="128" rx="9" fill="#FFFFFF"/>
+  <text x="25" y="84" font-size="12" font-weight="700" fill="#182431">本地</text>
+  <rect x="246" y="72" width="30" height="16" rx="8" fill="#0A59F7"/>
+  <circle cx="268" cy="80" r="6" fill="#FFFFFF"/>
+  <text x="25" y="106" font-size="9" fill="#5A6572">公钥</text>
+  <text x="95" y="106" font-size="9" fill="#182431">aB3dEf7…（点击复制）</text>
+  <text x="25" y="126" font-size="9" fill="#5A6572">局域网 IP 地址</text>
+  <text x="95" y="126" font-size="9" fill="#182431">10.0.0.2/32</text>
+  <text x="25" y="146" font-size="9" fill="#5A6572">DNS 服务器</text>
+  <text x="95" y="146" font-size="9" fill="#182431">1.1.1.1</text>
+  <text x="25" y="166" font-size="9" fill="#5A6572">MTU</text>
+  <text x="95" y="166" font-size="9" fill="#182431">1420</text>
+  <!-- 远程卡片 -->
+  <rect x="13" y="198" width="274" height="70" rx="9" fill="#FFFFFF"/>
+  <text x="25" y="218" font-size="12" font-weight="700" fill="#182431">远程</text>
+  <text x="25" y="238" font-size="9" fill="#5A6572">流量</text>
+  <text x="95" y="238" font-size="9" fill="#182431">接收：2.34 MiB，发送：0.86 MiB</text>
+  <text x="25" y="256" font-size="9" fill="#5A6572">上次握手时间</text>
+  <text x="95" y="256" font-size="9" fill="#182431">32 秒之前</text>
+</svg>
+  <figcaption>外屏上的隧道详情：标签列收窄，字段值完整可读；开关与「编辑」入口不变。</figcaption>
+</figure>
+
+<h2><span class="no">4</span>折叠 / 展开切换</h2>
+<ul>
+  <li>在外屏与内屏之间切换（折叠或展开手机）时，应用<b>停留在当前页面</b>，
+    已输入未保存的内容（如编辑器草稿）、滚动位置、多选状态都不会丢失。</li>
+  <li>正在进行中的连接 / 断开操作不受切换影响。</li>
+  <li>回到常规尺寸窗口时，界面自动恢复常规布局，不会残留紧凑样式。</li>
+</ul>
+
+<h2><span class="no">5</span>排错</h2>
+<table>
+  <tr><th>现象</th><th>说明与处理</th></tr>
+  <tr><td>外屏桌面上找不到 WireGuard</td>
+      <td>外屏显示应用需要应用上架后通过华为的「外屏应用展示申请」审核（平台白名单机制）；
+        审核通过前无法添加，请等待后续版本。</td></tr>
+  <tr><td>外屏上弹出的 VPN 授权框样式不同</td>
+      <td>授权框由系统绘制，显示以系统为准；点「允许」即可。</td></tr>
+  <tr><td>键盘弹出后看不到「保存」按钮</td>
+      <td>向上滑动页面即可到达；也可以先收起键盘再点「保存」。</td></tr>
+  <tr><td>窗口特别小（悬浮小窗）时内容拥挤</td>
+      <td>设计如此：内容始终可滚动到达，连接开关可用；建议放大窗口或全屏使用。</td></tr>
+</table>
+
+<nav class="foot-nav">
+  <span class="prev"><a href="privacy-security.html">← 上一页：隐私与安全</a></span>
+  <span class="next"><a href="index.html">回到手册首页 →</a></span>
+</nav>
+
+</div>
+</body>
+</html>

@@ -20,6 +20,11 @@
         "startWindowIcon": "$media:startIcon",
         "startWindowBackground": "$color:start_window_background",
         "exported": true,
+        // 决策 0009：显式声明小窗口支持（折叠屏外屏/分屏/悬浮窗），缺省值同为全模式，
+        // 显式写出以防将来缺省变化；最小窗口尺寸保证外屏（约 356–392vp 见方）可用。
+        "supportWindowMode": ["fullscreen", "split", "floating"],
+        "minWindowWidth": 320,
+        "minWindowHeight": 240,
         "skills": [
           {
             "entities": [

@@ -65,7 +65,7 @@ entry/               # 主模块（type: entry）
     backend/         # Backend（单激活互斥/切换回滚）、VpnController（vpnExtension 薄封装+错误映射）、
                      # AuthGuard（锁屏认证）、PrivacyMode（防截屏）、IpcProtocol（公共事件）
     platform/        # FsFileIO（原子写）、PreferencesStore（主题）、NativeBridge（NAPI 薄封装）
-    util/            # Logger/Format/Toast/Clipboard/FileUtil/RouteParams/TunnelDisplay（尽量纯，可单测）
+    util/            # Logger/Format/Toast/Clipboard/FileUtil/RouteParams/TunnelDisplay/ScreenMode（尽量纯，可单测）
     services/        # ImportService/ImportLogic（文件·zip·二维码·图片二维码导入）
     components/      # 复用 UI 片段（列表项/开关/卡片/应用过滤/命名对话框等）
     pages/           # Index（Navigation 宿主）/ 列表 / 详情 / 编辑器 / 设置 / 日志 / 扫码 + RouteStack
@@ -398,6 +398,12 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
   保活/重连策略要基于这个事实设计，不能假设后台常驻。
 - **BLAKE2s 不在鸿蒙密码框架内**（ArkTS 与 NDK 都没有）：WireGuard 握手/传输密钥派生依赖它，
   必须自实现；不要试图用 HMAC-SHA256 顶替（协议不兼容，无法与对端互通）。
+- **Pura X 外屏显示三方应用是平台白名单制**：完成外屏适配 → 上架应用市场 → 提交
+  「外屏应用展示申请」→ 华为审核通过后才能出现在外屏；**本地 hdc 安装的开发版
+  在系统外屏应用管理里添加不了是预期行为**，不是应用缺陷。且外屏不支持本地真机调试，
+  外屏形态验证走 DevEco Studio 的 Pura X 模拟器（官方问答，2026 核实；
+  链接见 docs/harmonyos-resources.md「折叠屏与外屏适配」）。
+
 - **`cryptoFramework` 的 X25519「按 spec 生成密钥对」在真机上不可用**：
   `createAsyKeyGeneratorBySpec({algName:'X25519', sk: <bigint>})` 在设备上直接失败，hilog 报
   `Class is not match. expect class: OPENSSL.ED25519.KEYGENERATOR, input class: OPENSSL.X25519.KEYGENERATOR`

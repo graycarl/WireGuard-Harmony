@@ -14,6 +14,8 @@ import { Key } from '../crypto/Key';
 import { KeyPair } from '../crypto/KeyPair';
 import { TunnelSwitch } from '../components/TunnelSwitch';
 import { PeerCard } from '../components/PeerCard';
+import { screenState } from '../components/ScreenState';
+import { Dimens } from '../util/ScreenMode';
 import { Clipboard } from '../util/Clipboard';
 import { appFilterText, joinNetworks, joinTexts, mtuText, portText } from '../util/TunnelDisplay';
 import { goBack, goEditor, pathStack, ROUTE_DETAIL } from './RouteStack';
@@ -121,6 +123,11 @@ export struct TunnelDetailPage {
     return config === null ? [] : config.peers;
   }
 
+  /** 尺寸档位（build/@Builder 中调用以读取 @Trace 依赖，决策 0009）。 */
+  private get d(): Dimens {
+    return new Dimens(screenState.compact);
+  }
+
   @Builder
   Header() {
     Row() {
@@ -137,7 +144,7 @@ export struct TunnelDetailPage {
         goBack();
       })
       Text(this.tunnelName)
-        .fontSize(20)
+        .fontSize(this.d.compact ? 17 : 20)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary'))
         .maxLines(1)
@@ -154,7 +161,7 @@ export struct TunnelDetailPage {
         })
     }
     .width('100%')
-    .height(56)
+    .height(this.d.titleBarHeight)
     .padding({ left: 4, right: 4 })
   }
 
@@ -165,7 +172,7 @@ export struct TunnelDetailPage {
       Text(label)
         .fontSize(14)
         .fontColor($r('app.color.text_secondary'))
-        .width(120)
+        .width(this.d.fieldLabelWidth)
       Text(value)
         .fontSize(15)
         .fontColor($r('app.color.text_primary'))
@@ -174,7 +181,7 @@ export struct TunnelDetailPage {
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .padding({ top: 8, bottom: 8 })
+    .padding({ top: this.d.fieldRowVPad, bottom: this.d.fieldRowVPad })
     .alignItems(VerticalAlign.Top)
     .onClick(() => {
       Clipboard.copyField(label, value);
@@ -218,7 +225,7 @@ export struct TunnelDetailPage {
       }
     }
     .width('100%')
-    .padding(16)
+    .padding(this.d.cardPadding)
     .borderRadius(12)
     .backgroundColor($r('app.color.card_bg'))
   }
@@ -234,7 +241,7 @@ export struct TunnelDetailPage {
           }, (peer: Peer, index: number) => `${peer.publicKey}-${index}`)
         }
         .width('100%')
-        .padding({ left: 16, right: 16, bottom: 24 })
+        .padding({ left: this.d.pagePadding, right: this.d.pagePadding, bottom: 24 })
       }
       .layoutWeight(1)
       .width('100%')

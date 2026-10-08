@@ -8,6 +8,8 @@
 import { AppStore } from '../store/AppStore';
 import { Peer } from '../config/Peer';
 import { Clipboard } from '../util/Clipboard';
+import { screenState } from './ScreenState';
+import { Dimens } from '../util/ScreenMode';
 import { endpointText, findStats, handshakeText, joinNetworks, keepaliveText, pskText,
   trafficText } from '../util/TunnelDisplay';
 
@@ -47,13 +49,18 @@ export struct PeerCard {
     return joinNetworks(this.peer.allowedIPs);
   }
 
+  /** 尺寸档位（build/@Builder 中调用以读取 @Trace 依赖，决策 0009）。 */
+  private get d(): Dimens {
+    return new Dimens(screenState.compact);
+  }
+
   @Builder
   Field(label: string, value: string, singleLine: boolean) {
     Row() {
       Text(label)
         .fontSize(14)
         .fontColor($r('app.color.text_secondary'))
-        .width(120)
+        .width(this.d.fieldLabelWidth)
       Text(value)
         .fontSize(15)
         .fontColor($r('app.color.text_primary'))
@@ -62,7 +69,7 @@ export struct PeerCard {
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .padding({ top: 8, bottom: 8 })
+    .padding({ top: this.d.fieldRowVPad, bottom: this.d.fieldRowVPad })
     .alignItems(VerticalAlign.Top)
     .onClick(() => {
       Clipboard.copyField(label, value);
@@ -75,14 +82,14 @@ export struct PeerCard {
       Text(label)
         .fontSize(14)
         .fontColor($r('app.color.text_secondary'))
-        .width(120)
+        .width(this.d.fieldLabelWidth)
       Text(value)
         .fontSize(15)
         .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
     }
     .width('100%')
-    .padding({ top: 8, bottom: 8 })
+    .padding({ top: this.d.fieldRowVPad, bottom: this.d.fieldRowVPad })
   }
 
   build() {
@@ -116,7 +123,7 @@ export struct PeerCard {
       }
     }
     .width('100%')
-    .padding(16)
+    .padding(this.d.cardPadding)
     .borderRadius(12)
     .backgroundColor($r('app.color.card_bg'))
   }

@@ -12,6 +12,8 @@ import { PreferencesStore } from '../platform/PreferencesStore';
 import { NativeBridge } from '../platform/NativeBridge';
 import { AppStore } from '../store/AppStore';
 import { RecordMapper } from '../store/RecordMapper';
+import { screenState } from '../components/ScreenState';
+import { Dimens } from '../util/ScreenMode';
 import { EmptyParam, goLog } from './RouteStack';
 
 @ComponentV2
@@ -19,6 +21,11 @@ export struct SettingsPage {
   @Param param: object = new EmptyParam();
   @Local versionText: string = 'WireGuard';
   @Local darkTheme: boolean = false;
+
+  /** 尺寸档位（build/@Builder 中调用以读取 @Trace 依赖，决策 0009）。 */
+  private get d(): Dimens {
+    return new Dimens(screenState.compact);
+  }
 
   aboutToAppear(): void {
     this.versionText = SettingsPage.buildVersionText();
@@ -85,7 +92,7 @@ export struct SettingsPage {
               })
           }
           .width('100%')
-          .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+          .padding({ left: this.d.pagePadding, right: this.d.pagePadding, top: 12, bottom: 12 })
         }
       }
       .width('100%')
@@ -121,7 +128,7 @@ export struct SettingsPage {
       }
     }
     .width('100%')
-    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+    .padding({ left: this.d.pagePadding, right: this.d.pagePadding, top: 12, bottom: 12 })
   }
 
   /** 用户实际保存到的文件名（拿不到时用建议文件名）。 */
