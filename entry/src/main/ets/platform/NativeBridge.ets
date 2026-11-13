@@ -63,9 +63,9 @@ export class NativeBridge {
     return prepareTunnel(configJson);
   }
 
-  /** 启动数据面（bind + 起线程），返回 0 成功 / <0 错误码。须先 prepare()。 */
-  static start(tunFd: number, sockFd: number): number {
-    return startTunnel(tunFd, sockFd);
+  /** 启动数据面（bind + 起线程），返回 0 成功 / <0 错误码。须先 prepare() 与 createUdpSocket()。 */
+  static start(tunFd: number): number {
+    return startTunnel(tunFd);
   }
 
   static stop(): void {

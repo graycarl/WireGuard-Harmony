@@ -6,7 +6,7 @@
  *      endpoint 域名解析要趁 VPN 尚未接管默认路由；
  *   2) vpnConnection.create(vpnConfig) 拿 tunFd；
  *   3) createUdpSocket() 拿 fd 并 vpnConnection.protect(fd)；
- *   4) startTunnel(tunFd, sockFd)。
+ *   4) startTunnel(tunFd)（UDP fd 已在第 3 步交给数据面）
  */
 
 /** 单个 Peer 的实时统计快照。 */
@@ -50,12 +50,13 @@ export const prepareTunnel: (configJson: string) => number;
 
 /**
  * 启动数据面（同步完成：bind(listenPort) → 起 tun↔UDP 与维护线程）。
- * 必须先成功调用 prepareTunnel()，否则返回 -1；进入本函数即消费该 prepared 状态
- * （失败后需重新 prepare）。
+ * 必须先成功调用 prepareTunnel() 与 createUdpSocket()，否则返回 -1/-3；
+ * 进入本函数即消费 prepared 状态（失败后需重新 prepare）。
+ * UDP fd 由 createUdpSocket() 交付给数据面，本接口不接受外部覆写。
  *
  * @returns 0 成功；-1 参数/内部错误（或未 prepare）；-3 socket/bind 失败；-4 线程创建失败。
  */
-export const startTunnel: (tunFd: number, sockFd: number) => number;
+export const startTunnel: (tunFd: number) => number;
 
 /** 停止数据面（幂等）：停线程、关 UDP fd、清会话；不关闭 tunFd（归 vpnConnection）。 */
 export const stopTunnel: () => void;

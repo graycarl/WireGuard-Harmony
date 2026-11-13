@@ -77,7 +77,8 @@ export default class WgVpnAbility extends VpnExtensionAbility {
     const configJson = NativeBridge.buildConfigJson(config);
     const prepared = NativeBridge.prepare(configJson);
     if (prepared !== NATIVE_OK) {
-      // 解析失败时不创建系统 VPN：不弹授权框、状态栏也不会闪 VPN 标志
+      // 解析失败即终止：不创建系统 VPN（create 未被调用 → 状态栏不会出现 VPN 标志）。
+      // 注：系统 VPN 授权框由 startVpnExtensionAbility 触发、早于 onCreate，与本次解析无关。
       throw new Error(NativeBridge.describeStartError(prepared));
     }
 
@@ -109,7 +110,7 @@ export default class WgVpnAbility extends VpnExtensionAbility {
     } catch (e) {
       Logger.info(TAG, `protectProcessNet 不可用：${(e as Error).message}`);
     }
-    const code = NativeBridge.start(tunFd, sockFd);
+    const code = NativeBridge.start(tunFd);
     if (code !== NATIVE_OK) {
       throw new Error(NativeBridge.describeStartError(code));
     }

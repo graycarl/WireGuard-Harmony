@@ -6,7 +6,7 @@
  *   prepareTunnel(configJson) -> 0 / <0      （**必须在 vpnConnection.create 之前**：
  *                                             endpoint 域名解析要趁 VPN 尚未接管默认路由，
  *                                             否则解析包被自己的隧道吞掉，见决策 0010）
- *   startTunnel(tunFd, sockFd) -> 0 / <0     （bind + 起线程）
+ *   startTunnel(tunFd) -> 0 / <0          （bind + 起线程；UDP fd 由 createUdpSocket 交给数据面）
  *   stopTunnel() / getStats() / getLastError() / getVersion()
  * 错误码：-1 参数/内部；-2 endpoint DNS 解析失败（getLastError=主机名）；
  *        -3 socket/bind 失败；-4 线程创建失败；-5 启动 KAT 自检失败。
@@ -43,10 +43,6 @@ static napi_value Int32(napi_env env, int32_t v)
 static napi_value CreateUdpSocket(napi_env env, napi_callback_info info)
 {
     (void)info;
-    if (!g_dev_ready) {
-        wg_device_init(&g_wg);
-        g_dev_ready = true;
-    }
     int fd = socket(AF_INET6, SOCK_DGRAM, 0);
     if (fd < 0)
         return Int32(env, -3);
@@ -55,7 +51,7 @@ static napi_value CreateUdpSocket(napi_env env, napi_callback_info info)
     (void)setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off));
     /* fd 归数据面所有：由 stopTunnel()/下一次 prepareTunnel() 关闭。
      * 这样调用方在 protect() 失败等异常路径上不会漏关 fd（无需额外 close API）。 */
-    if (g_wg.sock_fd >= 0 && g_wg.sock_fd != fd)
+    if (g_wg.sock_fd >= 0)
         close(g_wg.sock_fd);
     g_wg.sock_fd = fd;
     return Int32(env, fd);
@@ -113,24 +109,21 @@ static napi_value PrepareTunnel(napi_env env, napi_callback_info info)
 /* ---------------- startTunnel ---------------- */
 static napi_value StartTunnel(napi_env env, napi_callback_info info)
 {
-    size_t argc = 2;
-    napi_value args[2] = { nullptr, nullptr };
+    size_t argc = 1;
+    napi_value args[1] = { nullptr };
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    if (argc < 2)
+    if (argc < 1)
         return Int32(env, -1);
 
     int32_t tun_fd = -1;
-    int32_t sock_fd = -1;
     napi_get_value_int32(env, args[0], &tun_fd);
-    napi_get_value_int32(env, args[1], &sock_fd);
     if (tun_fd < 0)
         return Int32(env, -1);
     if (!g_prepared)
         return Int32(env, -1); /* 必须先 prepareTunnel（解析 done） */
 
     g_wg.tun_fd = tun_fd;
-    /* sockFd < 0 时复用 createUdpSocket() 已创建的 fd */
-    g_wg.sock_fd = sock_fd >= 0 ? sock_fd : g_wg.sock_fd;
+    /* UDP fd 已由 createUdpSocket() 交给数据面（唯一 owner），此处不接受外部覆写 */
     if (g_wg.sock_fd < 0)
         return Int32(env, -3);
     /* prepared 态在进入 start 即被消费：后续任何失败都需重新 prepare，

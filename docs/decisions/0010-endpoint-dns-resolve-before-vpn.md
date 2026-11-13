@@ -54,7 +54,7 @@ createVpnConnection → create(vpnConfig)  ← 系统 VPN 生效：默认路由 
    prepare(configJson)                // 此时无 VPN，DNS 走 Wi-Fi/蜂窝，正常解析
    → vpnConnection.create(vpnConfig)  // 失败仍映射「无法创建 tun 设备」等既有文案
    → createUdpSocket() → protect(sockFd) → protectProcessNet()（失败仅记日志）
-   → startTunnel(tunFd, sockFd)
+   → startTunnel(tunFd)               // UDP fd 已在 createUdpSocket() 交给数据面
    ```
 3. `prepareTunnel` 失败即**不创建系统 VPN**：状态栏不会出现 VPN 图标（`create()` 未被调用），
    直接把「无法解析 DNS 主机名」事件发给 UI。注意：**系统 VPN 授权框不在这一步的范围内** ——
@@ -63,9 +63,9 @@ createVpnConnection → create(vpnConfig)  ← 系统 VPN 生效：默认路由 
    用户可感知的行为以 specs/tunnel-connection.md 为准。
 4. 顺带加 `protectProcessNet()`（API 22，SDK 24 可用）：让 VPN 进程之后新建的 socket
    （将来的 endpoint 二次解析、诊断上报）默认走底层网络，避免同类死锁复发。
-5. 顺带修 fd 归属：`createUdpSocket()` 产出的 fd 直接记入数据面（`g_wg.sock_fd`），
-   由 `stopTunnel()`/下一次 `prepareTunnel()` 关闭。这样 `protect()` 失败等异常路径不会漏关 fd
-   （旧实现在 `startTunnel` 之前该 fd 无人持有，每次失败漏一个）。
+5. 顺带修 fd 归属：`createUdpSocket()` 产出的 fd 直接记入数据面（`g_wg.sock_fd`，唯一 owner），
+   由 `stopTunnel()`/下一次 `prepareTunnel()` 关闭；`startTunnel(tunFd)` 只接收 tun fd，不再接受覆写 UDP fd。
+   这样 `protect()` 失败等异常路径不会漏关 fd（旧实现在 `startTunnel` 之前该 fd 无人持有，每次失败漏一个）。
    同时 `startTunnel` 入口即清 `g_prepared`（失败即视为本次 prepare 已消费）。
 
 ## 被否决的备选方案

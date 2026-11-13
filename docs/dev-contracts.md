@@ -194,17 +194,18 @@ export class Backend {                       // 进程内单例（static get()�
 export interface WgPeerStats { publicKey: string; rxBytes: number; txBytes: number;
   lastHandshakeMs: number; endpoint: string }
 /** 创建 UDP socket（VPN 进程对其调 vpnConnection.protect(fd)）。失败 <0。
- *  fd 归数据面所有：由 stopTunnel()/下一次 prepareTunnel() 关闭。 */
+ *  fd 归数据面所有：由 stopTunnel()/下一次 prepareTunnel() 关闭（startTunnel 不再接收该 fd）。 */
 export const createUdpSocket: () => number;
 /** 准备数据面：KAT 自检 → 解析配置 → 解析全部 endpoint（getaddrinfo，同步）→ 派生密钥。
  *  **必须在 vpnConnection.create() 之前调用**（决策 0010：VPN 建立后默认路由被自己的
  *  tun 接管，此时解析域名会把查询包送进尚未跑通的隧道 → 有效域名也报解析失败）。
  *  不碰 fd、不起线程。返回 0 成功；<0 错误码（细节用 getLastError）。 */
 export const prepareTunnel: (configJson: string) => number;
-/** 启动数据面：绑定 sockFd(listenPort) → 起 tun↔UDP 转发线程与维护定时器线程。
- *  须先成功调用 prepareTunnel()（否则 -1）；进入本函数即消费该 prepared 状态。
+/** 启动数据面：绑定已交付的 UDP fd（listenPort）→ 起 tun↔UDP 转发线程与维护定时器线程。
+ *  须先成功调用 prepareTunnel() 与 createUdpSocket()（否则 -1/-3）；进入本函数即消费该 prepared 状态。
+ *  UDP fd 由 createUdpSocket() 交付数据面，本接口不接受外部覆写。
  *  返回 0 成功；<0 错误码。 */
-export const startTunnel: (tunFd: number, sockFd: number) => number;
+export const startTunnel: (tunFd: number) => number;
 export const stopTunnel: () => void;          // 幂等：停线程、关 fd、清会话
 export const getStats: () => WgPeerStats[];   // 快照；lastHandshakeMs=0 表从未握手
 export const getLastError: () => string;      // 如解析失败的主机名
@@ -218,8 +219,7 @@ export const getVersion: () => string;        // 如 "wg-harmony 1.0.0"
 错误码：`-1` 参数/内部错误；`-2` endpoint DNS 解析失败（getLastError=主机名，仅 prepareTunnel）；
 `-3` socket/bind 失败；`-4` 资源不足/线程创建失败；`-5` 启动 KAT 自检失败。
 **顺序契约**：`prepareTunnel` → `create` → `createUdpSocket`/`protect` → `startTunnel`；
-颠倒（先 create 后解析）会导致 VPN 自己的 DNS 流量被隧道吞掉，见 [决策 0010](decisions/0010-endpoint-dns-resolve-before-vpn.md)。
-线程模型：tun→UDP 线程、UDP→tun 线程、维护线程（~250ms 节拍：rekey/reject-after/
+颠倒（先 create 后解析）会导致 VPN 自己的 DNS 流量被隧道吞掉，见 [决策 0010](decisions/0010-endpoint-dns-resolve-before-vpn.md)。线程模型：tun→UDP 线程、UDP→tun 线程、维护线程（~250ms 节拍：rekey/reject-after/
 keepalive/握手重试与指数退避）。UDP 用非连接 socket + sendto/recvfrom（roaming 换地址不换 socket）。
 启动时跑 KAT（blake2s/chacha20poly1305/x25519 编译期内置官方向量），失败返回 -5。
 平台相关仅日志与 fd 读写，用宏隔离便于主机侧测试。
@@ -243,8 +243,8 @@ onCreate(want)：① 读 `tunnelName`（空→自毁）；② repo 读配置（�
 「无法解析 DNS 主机名」事件+自毁，此时尚未创建系统 VPN、状态栏不会出现 VPN 图标；
 系统授权框由 `startVpnExtensionAbility()` 触发、早于 `onCreate`，与解析成败无关）**；
 ⑤ `createVpnConnection(context).create(cfg)` 拿 tunFd（失败→「无法创建 tun 设备」事件+自毁）；
-⑥ `createUdpSocket()`（fd 从此归数据面）→`protect(sockFd)`→`protectProcessNet()`（失败仅记日志）；
-⑦ `startTunnel(tunFd, sockFd)`（失败按 §8 错误码映射发事件+自毁）；
+⑥ `createUdpSocket()`（fd 从此归数据面，唯一 owner）→`protect(sockFd)`→`protectProcessNet()`（失败仅记日志）；
+⑦ `startTunnel(tunFd)`（失败按 §8 错误码映射发事件+自毁）；
 ⑧ 发 up 事件并起 1s 统计发布定时器。
 onDestroy：停定时器 → `stopTunnel()` → `vpnConnection.destroy()` → 发 down 事件。
 
