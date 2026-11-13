@@ -5,7 +5,8 @@
  * 配置 JSON 组装与错误码 → 用户可见文案映射（specs/tunnel-connection.md 错误文案表）。
  */
 
-import { createUdpSocket, startTunnel, stopTunnel, getStats, getLastError, getVersion } from 'libentry.so';
+import { createUdpSocket, prepareTunnel, startTunnel, stopTunnel, getStats, getLastError, getVersion }
+  from 'libentry.so';
 import { Config } from '../config/Config';
 
 /** 数据面成功返回码。 */
@@ -47,14 +48,24 @@ interface NativeTunnelConfig {
 }
 
 export class NativeBridge {
-  /** 创建 UDP socket（>=0 为 fd；<0 为错误码）。 */
+  /** 创建 UDP socket（>=0 为 fd；<0 为错误码）。fd 归数据面所有：由 stop() 关闭。 */
   static createUdpSocket(): number {
     return createUdpSocket();
   }
 
-  /** 启动数据面，返回 0 成功 / <0 错误码。 */
-  static start(tunFd: number, sockFd: number, configJson: string): number {
-    return startTunnel(tunFd, sockFd, configJson);
+  /**
+   * 准备数据面：解析配置 + 解析全部 endpoint。
+   * **必须在 VpnConnection.create() 之前调用**（决策 0010）：VPN 建起来后默认路由
+   * 已被自己的 tun 接管，此时再用 getaddrinfo 解析域名，查询包会被送进尚未跑通的
+   * 隧道，导致「有效的域名也报解析失败」。
+   */
+  static prepare(configJson: string): number {
+    return prepareTunnel(configJson);
+  }
+
+  /** 启动数据面（bind + 起线程），返回 0 成功 / <0 错误码。须先 prepare() 与 createUdpSocket()。 */
+  static start(tunFd: number): number {
+    return startTunnel(tunFd);
   }
 
   static stop(): void {
