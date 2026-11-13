@@ -70,6 +70,17 @@ export default class WgVpnAbility extends VpnExtensionAbility {
     }
 
     const vpnConfig = WgVpnAbility.buildVpnConfig(config);
+
+    /* ① 先把 endpoint 解析完（必须在建 VPN 之前）：
+     * VPN 一旦 create，默认路由与 DNS 已被自己的 tun 接管，此时解析域名会把查询包送进
+     * 尚未跑通的隧道（握手正是卡在这一步），表现为「有效域名也报无法解析 DNS」（决策 0010）。 */
+    const configJson = NativeBridge.buildConfigJson(config);
+    const prepared = NativeBridge.prepare(configJson);
+    if (prepared !== NATIVE_OK) {
+      // 解析失败时不创建系统 VPN：不弹授权框、状态栏也不会闪 VPN 标志
+      throw new Error(NativeBridge.describeStartError(prepared));
+    }
+
     const vpnConn = vpnExtension.createVpnConnection(this.context);
     this.vpnConnection = vpnConn;
     let tunFd: number;
@@ -91,7 +102,14 @@ export default class WgVpnAbility extends VpnExtensionAbility {
       Logger.error(TAG, `protect 失败：${(e as Error).message}`);
       throw new Error('无法启动 VPN 服务');
     }
-    const code = NativeBridge.start(tunFd, sockFd, NativeBridge.buildConfigJson(config));
+    /* 本进程之后新建的 socket 默认走底层网络（API 22+）：避免本进程自己的网络活动
+     * （如将来的 endpoint 二次解析）又被隧道吞掉。失败不影响连接主流程。 */
+    try {
+      await vpnConn.protectProcessNet();
+    } catch (e) {
+      Logger.info(TAG, `protectProcessNet 不可用：${(e as Error).message}`);
+    }
+    const code = NativeBridge.start(tunFd, sockFd);
     if (code !== NATIVE_OK) {
       throw new Error(NativeBridge.describeStartError(code));
     }

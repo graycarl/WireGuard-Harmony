@@ -35,7 +35,7 @@ spec / handbook 是验收基准，代码行为与 spec 冲突时以 spec 为准�
 | 定位 | **WireGuard VPN 客户端的 HarmonyOS 原生重写**：ArkTS + ArkUI 声明式 UI + `VpnExtensionAbility`，功能对齐上游 WireGuard-Android |
 | 数据源 | 本地用户配置（wg-quick `.conf` 文本 / 二维码 / 手动编辑），**无后端服务**；配置与私钥仅存本机 |
 | 上游参考实现 | `~/LibSource/WireGuard-Android`（tag `1.0.20260315-1-ge7b3a3c1`） |
-| 设计文档 | **[specs/*.md](specs/)**（功能规格）+ **[handbook/*.html](handbook/)**（用户说明书）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策 0001–0008）+ **[docs/dev-contracts.md](docs/dev-contracts.md)**（模块间 API 单一真源）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
+| 设计文档 | **[specs/*.md](specs/)**（功能规格）+ **[handbook/*.html](handbook/)**（用户说明书）+ **[docs/decisions/*.md](docs/decisions/)**（技术决策 0001–0010）+ **[docs/dev-contracts.md](docs/dev-contracts.md)**（模块间 API 单一真源）；完整索引见 [docs/harmonyos-resources.md](docs/harmonyos-resources.md) |
 | 验收文档 | **[docs/device-verification.md](docs/device-verification.md)**（真机验证清单）+ **[docs/interop-testing.md](docs/interop-testing.md)**（与 Linux `wg` 互操作验收） |
 | 实现状态 | 数据面（C：BLAKE2s/HMAC/ChaCha20-Poly1305/X25519 + Noise IK 握手 + 传输 + 定时器 + NAPI + 启动 KAT）与全部功能页面（列表/详情/编辑器/导入/设置/日志/隐私）已实现；本地单测 117 例全绿、`make build` 可打包签名 HAP；**真机与互操作验收未完成**（见验收文档；真机已发现并修掉 1 处平台限制，见 [docs/decisions/0008](docs/decisions/0008-arkts-x25519-self-implemented.md)） |
 | bundleName | `me.graycarl.wireguard` |
@@ -386,6 +386,13 @@ WireGuard 协议强依赖 BLAKE2s（含 keyed 模式做 MAC）→ **必须自实
 
 - **`externalNativeOptions` 必须放在模块 `build-profile.json5` 的 `buildOption` 内**：放根部会被 hvigor
   schema 拒绝（报错只列 allowedValues，不提示正确位置）。
+
+- **VPN 扩展进程里 `getaddrinfo` 必须发生在 `vpnConnection.create()` 之前**（决策 0010）：
+  `create()` 一返回，默认路由与 `dnsAddresses` 就被自己的 tun 接管，此刻解析域名会把查询包
+  送进尚未跑通的隧道（握手卡在「解析完成之后」）→ 表现为「IP 能连、有效域名却报无法解析 DNS」，
+  netd 缓存命中时又偶然成功。所以 NAPI 拆成 `prepareTunnel`（解析）与
+  `startTunnel`（bind + 起线程），`protect(fd)` 只保护那一个 fd、管不到解析用的 socket，
+  必要时靠 `protectProcessNet()`（API 22）保护本进程后续新建的 socket。
 
 - **`MANAGE_VPN` 是 `system_basic`**：看到 `@ohos.net.vpn` 系列 API 别急着用，普通应用只能用
   `@ohos.net.vpnExtension`（三方 VPN 能力，只需 `INTERNET`）。

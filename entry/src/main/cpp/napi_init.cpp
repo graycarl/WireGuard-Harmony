@@ -2,8 +2,11 @@
  * WireGuard 数据面 NAPI 入口（薄控制面，决策 0001/0002）。
  *
  * 接口契约见 docs/dev-contracts.md §8：
- *   createUdpSocket() -> fd        （VPN 进程先 protect(fd) 再 startTunnel）
- *   startTunnel(tunFd, sockFd, configJson) -> 0 / <0 错误码
+ *   createUdpSocket() -> fd                  （VPN 进程对其 protect(fd)）
+ *   prepareTunnel(configJson) -> 0 / <0      （**必须在 vpnConnection.create 之前**：
+ *                                             endpoint 域名解析要趁 VPN 尚未接管默认路由，
+ *                                             否则解析包被自己的隧道吞掉，见决策 0010）
+ *   startTunnel(tunFd, sockFd) -> 0 / <0     （bind + 起线程）
  *   stopTunnel() / getStats() / getLastError() / getVersion()
  * 错误码：-1 参数/内部；-2 endpoint DNS 解析失败（getLastError=主机名）；
  *        -3 socket/bind 失败；-4 线程创建失败；-5 启动 KAT 自检失败。
@@ -26,6 +29,8 @@
 /* 全局单实例数据面（决策 0006 §4：同一时刻只承载一条隧道） */
 wg_device g_wg;
 static bool g_dev_ready = false;
+/* prepareTunnel 成功且尚未 startTunnel 时为 true（保证「解析在前、建 VPN 在后」的顺序） */
+static bool g_prepared = false;
 
 static napi_value Int32(napi_env env, int32_t v)
 {
@@ -47,25 +52,20 @@ static napi_value CreateUdpSocket(napi_env env, napi_callback_info info)
     return Int32(env, fd);
 }
 
-/* ---------------- startTunnel ---------------- */
-static napi_value StartTunnel(napi_env env, napi_callback_info info)
+/* ---------------- prepareTunnel ---------------- */
+/* 解析配置 + 解析全部 endpoint（getaddrinfo）+ KAT 自检；不碰 fd、不起线程。
+ * 调用时机：**vpnConnection.create() 之前**（决策 0010）。 */
+static napi_value PrepareTunnel(napi_env env, napi_callback_info info)
 {
-    size_t argc = 3;
-    napi_value args[3] = { nullptr, nullptr, nullptr };
+    size_t argc = 1;
+    napi_value args[1] = { nullptr };
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    if (argc < 3)
-        return Int32(env, -1);
-
-    int32_t tun_fd = -1;
-    int32_t sock_fd = -1;
-    napi_get_value_int32(env, args[0], &tun_fd);
-    napi_get_value_int32(env, args[1], &sock_fd);
-    if (tun_fd < 0)
+    if (argc < 1)
         return Int32(env, -1);
 
     static char config_json[8192];
     size_t jlen = 0;
-    if (napi_get_value_string_utf8(env, args[2], config_json, sizeof(config_json), &jlen) != napi_ok)
+    if (napi_get_value_string_utf8(env, args[0], config_json, sizeof(config_json), &jlen) != napi_ok)
         return Int32(env, -1);
 
     if (!g_dev_ready) {
@@ -73,12 +73,15 @@ static napi_value StartTunnel(napi_env env, napi_callback_info info)
         g_dev_ready = true;
     }
 
-    /* 重新启动前先停干净旧实例 */
+    /* 重新准备前先停干净旧实例 */
     wg_runtime_stop(&g_wg);
     wg_device_destroy(&g_wg);
-    g_wg.tun_fd = tun_fd;
-    /* sockFd < 0 时复用 createUdpSocket() 已创建的 fd */
-    g_wg.sock_fd = sock_fd >= 0 ? sock_fd : g_wg.sock_fd;
+    if (g_wg.sock_fd >= 0) {
+        close(g_wg.sock_fd);
+        g_wg.sock_fd = -1;
+    }
+    g_prepared = false;
+    g_wg.tun_fd = -1;
     g_wg.listen_port = 0;
     g_wg.n_peers = 0;
     g_wg.running = false;
@@ -94,6 +97,31 @@ static napi_value StartTunnel(napi_env env, napi_callback_info info)
     if (rc != 0)
         return Int32(env, rc); /* -1；-2 时 last_error 为解析失败的主机名 */
 
+    g_prepared = true;
+    return Int32(env, 0);
+}
+
+/* ---------------- startTunnel ---------------- */
+static napi_value StartTunnel(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2] = { nullptr, nullptr };
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (argc < 2)
+        return Int32(env, -1);
+
+    int32_t tun_fd = -1;
+    int32_t sock_fd = -1;
+    napi_get_value_int32(env, args[0], &tun_fd);
+    napi_get_value_int32(env, args[1], &sock_fd);
+    if (tun_fd < 0)
+        return Int32(env, -1);
+    if (!g_prepared)
+        return Int32(env, -1); /* 必须先 prepareTunnel（解析 done） */
+
+    g_wg.tun_fd = tun_fd;
+    /* sockFd < 0 时复用 createUdpSocket() 已创建的 fd */
+    g_wg.sock_fd = sock_fd >= 0 ? sock_fd : g_wg.sock_fd;
     if (g_wg.sock_fd < 0)
         return Int32(env, -3);
 
@@ -112,6 +140,7 @@ static napi_value StartTunnel(napi_env env, napi_callback_info info)
     if (wg_runtime_start(&g_wg) != 0)
         return Int32(env, -4);
 
+    g_prepared = false;
     return Int32(env, 0);
 }
 
@@ -119,6 +148,7 @@ static napi_value StartTunnel(napi_env env, napi_callback_info info)
 static napi_value StopTunnel(napi_env env, napi_callback_info info)
 {
     (void)info;
+    g_prepared = false;
     wg_runtime_stop(&g_wg);
     if (g_wg.sock_fd >= 0) {
         close(g_wg.sock_fd);
@@ -209,6 +239,7 @@ static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
         {"createUdpSocket", nullptr, CreateUdpSocket, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"prepareTunnel", nullptr, PrepareTunnel, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"startTunnel", nullptr, StartTunnel, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"stopTunnel", nullptr, StopTunnel, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getStats", nullptr, GetStats, nullptr, nullptr, nullptr, napi_default, nullptr},
