@@ -36,8 +36,9 @@ createVpnConnection → create(vpnConfig)  ← 系统 VPN 生效：默认路由 
 - `protect(socketFd)` **只保护传入的那一个 fd**，`getaddrinfo` 内部用的 socket 不在其列；
   平台为此在 API 22 才补了 `protectProcessNet()`（「保护本进程之后新建的所有 socket」），
   反证默认不保护本进程流量。
-- 官方样例 `VPNControl_Case`（`MyVpnExtAbility.ets`）的顺序就是
-  `udpConnect()` → `protect()` → `SetupVpn()`（即 `create`），与本文结论一致。
+- 官方样例 `VPNControl_Case`（`entry/src/main/ets/vpnability/VPNExtentionAbility.ets`）
+  的顺序也是 `udpConnect()`（建 socket）→ `protect()` → `SetupVpn()`（即 `create`）→ 处理 tun，
+  即「socket/protect 在 create 之前」；它用的是硬编码 IP，故只佐证顺序、不佐证域名解析。
 - 数字 IP 走 `getaddrinfo` 的 numeric 分支，不发任何 DNS 查询 → 所以「IP 能连、域名不能」。
   netd DNS 缓存命中时域名也可能偶然成功，症状表现为时好时坏。
 
@@ -55,10 +56,17 @@ createVpnConnection → create(vpnConfig)  ← 系统 VPN 生效：默认路由 
    → createUdpSocket() → protect(sockFd) → protectProcessNet()（失败仅记日志）
    → startTunnel(tunFd, sockFd)
    ```
-3. `prepareTunnel` 失败即**不创建系统 VPN**：不弹授权框、状态栏不会闪 VPN 图标，
-   直接把「无法解析 DNS 主机名」事件发给 UI → 用户可感知的行为写入 specs/tunnel-connection.md。
+3. `prepareTunnel` 失败即**不创建系统 VPN**：状态栏不会出现 VPN 图标（`create()` 未被调用），
+   直接把「无法解析 DNS 主机名」事件发给 UI。注意：**系统 VPN 授权框不在这一步的范围内** ——
+   授权框由系统在 `startVpnExtensionAbility()` 时弹出，且只有授权后系统才会拉起本扩展 Ability 的
+   `onCreate`（平台 `net-vpnExtension.md`），因此它总是早于 `prepareTunnel`，与解析成败无关。
+   用户可感知的行为以 specs/tunnel-connection.md 为准。
 4. 顺带加 `protectProcessNet()`（API 22，SDK 24 可用）：让 VPN 进程之后新建的 socket
    （将来的 endpoint 二次解析、诊断上报）默认走底层网络，避免同类死锁复发。
+5. 顺带修 fd 归属：`createUdpSocket()` 产出的 fd 直接记入数据面（`g_wg.sock_fd`），
+   由 `stopTunnel()`/下一次 `prepareTunnel()` 关闭。这样 `protect()` 失败等异常路径不会漏关 fd
+   （旧实现在 `startTunnel` 之前该 fd 无人持有，每次失败漏一个）。
+   同时 `startTunnel` 入口即清 `g_prepared`（失败即视为本次 prepare 已消费）。
 
 ## 被否决的备选方案
 

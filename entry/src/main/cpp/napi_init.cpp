@@ -2,7 +2,7 @@
  * WireGuard 数据面 NAPI 入口（薄控制面，决策 0001/0002）。
  *
  * 接口契约见 docs/dev-contracts.md §8：
- *   createUdpSocket() -> fd                  （VPN 进程对其 protect(fd)）
+ *   createUdpSocket() -> fd                  （fd 归数据面所有，由 stopTunnel/下次 prepare 关闭）
  *   prepareTunnel(configJson) -> 0 / <0      （**必须在 vpnConnection.create 之前**：
  *                                             endpoint 域名解析要趁 VPN 尚未接管默认路由，
  *                                             否则解析包被自己的隧道吞掉，见决策 0010）
@@ -43,12 +43,21 @@ static napi_value Int32(napi_env env, int32_t v)
 static napi_value CreateUdpSocket(napi_env env, napi_callback_info info)
 {
     (void)info;
+    if (!g_dev_ready) {
+        wg_device_init(&g_wg);
+        g_dev_ready = true;
+    }
     int fd = socket(AF_INET6, SOCK_DGRAM, 0);
     if (fd < 0)
         return Int32(env, -3);
     int off = 0;
     /* 双栈：同一 socket 承载 v4（v4-mapped）与 v6 端点 */
     (void)setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off));
+    /* fd 归数据面所有：由 stopTunnel()/下一次 prepareTunnel() 关闭。
+     * 这样调用方在 protect() 失败等异常路径上不会漏关 fd（无需额外 close API）。 */
+    if (g_wg.sock_fd >= 0 && g_wg.sock_fd != fd)
+        close(g_wg.sock_fd);
+    g_wg.sock_fd = fd;
     return Int32(env, fd);
 }
 
@@ -124,6 +133,9 @@ static napi_value StartTunnel(napi_env env, napi_callback_info info)
     g_wg.sock_fd = sock_fd >= 0 ? sock_fd : g_wg.sock_fd;
     if (g_wg.sock_fd < 0)
         return Int32(env, -3);
+    /* prepared 态在进入 start 即被消费：后续任何失败都需重新 prepare，
+     * 不留下「失败后仍持 prepared」的状态（契约 §8）。 */
+    g_prepared = false;
 
     struct sockaddr_in6 addr;
     memset(&addr, 0, sizeof(addr));
@@ -140,7 +152,6 @@ static napi_value StartTunnel(napi_env env, napi_callback_info info)
     if (wg_runtime_start(&g_wg) != 0)
         return Int32(env, -4);
 
-    g_prepared = false;
     return Int32(env, 0);
 }
 

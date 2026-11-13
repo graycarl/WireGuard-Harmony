@@ -25,7 +25,8 @@ export interface WgPeerStats {
 
 /**
  * 创建 UDP socket（双栈）。返回值 >= 0 为 fd；< 0 为错误码（-3 socket 失败）。
- * 调用方须在 startTunnel 前对其调用 vpnConnection.protect(fd)。
+ * 调用方须对其调用 vpnConnection.protect(fd)。
+ * **fd 归数据面所有**：由 stopTunnel() / 下一次 prepareTunnel() 关闭（无需调用方 close）。
  */
 export const createUdpSocket: () => number;
 
@@ -49,7 +50,8 @@ export const prepareTunnel: (configJson: string) => number;
 
 /**
  * 启动数据面（同步完成：bind(listenPort) → 起 tun↔UDP 与维护线程）。
- * 必须先成功调用 prepareTunnel()，否则返回 -1。
+ * 必须先成功调用 prepareTunnel()，否则返回 -1；进入本函数即消费该 prepared 状态
+ * （失败后需重新 prepare）。
  *
  * @returns 0 成功；-1 参数/内部错误（或未 prepare）；-3 socket/bind 失败；-4 线程创建失败。
  */

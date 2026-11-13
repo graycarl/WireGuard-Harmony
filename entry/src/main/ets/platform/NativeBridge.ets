@@ -48,12 +48,11 @@ interface NativeTunnelConfig {
 }
 
 export class NativeBridge {
-  /** 创建 UDP socket（>=0 为 fd；<0 为错误码）。 */
+  /** 创建 UDP socket（>=0 为 fd；<0 为错误码）。fd 归数据面所有：由 stop() 关闭。 */
   static createUdpSocket(): number {
     return createUdpSocket();
   }
 
-  /** 启动数据面，返回 0 成功 / <0 错误码。 */
   /**
    * 准备数据面：解析配置 + 解析全部 endpoint。
    * **必须在 VpnConnection.create() 之前调用**（决策 0010）：VPN 建起来后默认路由

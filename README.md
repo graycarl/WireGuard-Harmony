@@ -49,7 +49,7 @@ entry/src/main/cpp/ C 数据面：原语 / 握手 / 传输 / 定时器 / NAPI / 
 entry/src/test/     本地单测（hypium）
 specs/              功能规格（用户视角，先于代码）
 handbook/           用户使用说明书（HTML + 内联 SVG 截图）
-docs/decisions/     技术决策 0001–0008（数据面自研、握手分层、持久化、进程通信…）
+docs/decisions/     技术决策 0001–0010（数据面自研、握手分层、持久化、进程通信…）
 docs/               真机验证清单、互操作验收、模块 API 契约
 AGENTS.md           给 AI coding agent 的项目上下文（事实 / 构建 / 资料检索 / 已知坑）
 ```
